@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Capt Toha Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #090d16;
+      color: #f1f5f9;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: 90px;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    input, select {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+    }
+    input:focus, select:focus {
+      outline: none !important;
+      border-color: #10b981 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen select-none">
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 glass px-4 py-3.5 flex items-center justify-between border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-slate-950 text-base shadow-lg shadow-emerald-500/20">
+        TT
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Corps of EME</span>
+        </div>
+        <h1 class="text-sm font-bold text-white tracking-tight mt-0.5">Capt Tanvir Ahmed Toha</h1>
+      </div>
+    </div>
+    <button onclick="openEntryModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20">
+      + Add Entry
+    </button>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section id="view-dashboard" class="space-y-4">
+      <!-- Net Balance Hero Card -->
+      <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/60 border border-emerald-500/30 shadow-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Available Net Balance</span>
+          <span id="dash-month-label" class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full"></span>
+        </div>
+        <div id="kpi-net" class="text-3xl font-black text-white mt-1.5 tracking-tight">৳0</div>
+
+        <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800/80">
+          <div>
+            <div class="text-[11px] text-slate-400">Income</div>
+            <div id="kpi-income" class="text-sm font-bold text-emerald-400 mt-0.5">৳0</div>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400">Expense</div>
+            <div id="kpi-expense" class="text-sm font-bold text-rose-400 mt-0.5">৳0</div>
+          </div>
+          <div>
+            <div class="text-[11px] text-slate-400">Savings / DPS</div>
+            <div id="kpi-savings" class="text-sm font-bold text-sky-400 mt-0.5">৳0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Pills -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="openEntryModal('expense')" class="p-3 rounded-xl glass flex items-center justify-center gap-2 active:scale-95 transition">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <span class="text-xs font-bold text-slate-200">Log Expense</span>
+        </button>
+        <button onclick="openEntryModal('income')" class="p-3 rounded-xl glass flex items-center justify-center gap-2 active:scale-95 transition">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span class="text-xs font-bold text-slate-200">Log Income</span>
+        </button>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="p-4 rounded-2xl glass space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">This Month's Spending</h2>
+          <span id="budget-summary-pill" class="text-[11px] font-semibold text-slate-300"></span>
+        </div>
+        <div id="category-bars" class="space-y-3"></div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="p-4 rounded-2xl glass space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Entries</h2>
+          <button onclick="switchTab('ledger')" class="text-xs text-emerald-400 font-semibold">See All →</button>
+        </div>
+        <div id="recent-list" class="space-y-2.5"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: FULL LEDGER -->
+    <section id="view-ledger" class="hidden space-y-3">
+      <div class="p-3.5 rounded-2xl glass space-y-2.5">
+        <input id="search-input" type="text" oninput="renderAll()" placeholder="Search note or category..." class="w-full px-3.5 py-2.5 rounded-xl text-xs" />
+        <div class="grid grid-cols-2 gap-2">
+          <select id="filter-type" onchange="renderAll()" class="px-3 py-2 rounded-xl text-xs">
+            <option value="all">All Types</option>
+            <option value="income">Income (+)</option>
+            <option value="expense">Expense (-)</option>
+            <option value="investment">Savings / DPS</option>
+          </select>
+          <select id="filter-cat" onchange="renderAll()" class="px-3 py-2 rounded-xl text-xs">
+            <option value="all">All Categories</option>
+          </select>
+        </div>
+      </div>
+      <div id="full-ledger-list" class="space-y-2"></div>
+    </section>
+
+    <!-- VIEW 3: BUDGETS & GOALS -->
+    <section id="view-budgets" class="hidden space-y-4">
+      <div class="p-4 rounded-2xl glass space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Category Limits</h2>
+          <span class="text-[11px] text-slate-400">Tap limit to edit</span>
+        </div>
+        <div id="budget-editor-list" class="space-y-2.5"></div>
+      </div>
+
+      <div class="p-4 rounded-2xl glass space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Savings & Target Goals</h2>
+          <button onclick="addNewGoal()" class="text-xs font-bold text-emerald-400">+ New Goal</button>
+        </div>
+        <div id="goals-list" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: BACKUP & DATA -->
+    <section id="view-backup" class="hidden space-y-4">
+      <div class="p-4 rounded-2xl glass space-y-3">
+        <h2 class="text-sm font-bold text-white">100% Offline & Private Storage</h2>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          All entries are saved privately inside your phone's local storage with zero SMS or external permissions required. Use the buttons below to export or restore your data anytime.
+        </p>
+        <div class="grid grid-cols-1 gap-2.5 pt-2">
+          <button onclick="exportCSV()" class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs">
+            Export Excel / CSV Report
+          </button>
+          <button onclick="exportJSON()" class="w-full py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs border border-slate-700">
+            Download Full Backup (.JSON)
+          </button>
+          <label class="w-full py-3 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs border border-slate-700 text-center cursor-pointer block">
+            Restore from Backup (.JSON)
+            <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
+          </label>
+          <button onclick="resetAllData()" class="w-full py-2.5 rounded-xl bg-rose-950/50 text-rose-400 font-semibold text-xs border border-rose-500/30 mt-2">
+            Reset to Default Sample Data
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ADD / EDIT TRANSACTION MODAL -->
+  <div id="entry-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 id="modal-title" class="text-base font-bold text-white">Add Financial Entry</h3>
+        <button onclick="closeEntryModal()" class="text-slate-400 text-sm font-bold px-2 py-1">✕</button>
+      </div>
+
+      <input type="hidden" id="entry-id" />
+
+      <!-- Type Selector -->
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" id="btn-type-expense" onclick="setEntryType('expense')" class="py-2.5 rounded-xl text-xs font-bold border">Expense</button>
+        <button type="button" id="btn-type-income" onclick="setEntryType('income')" class="py-2.5 rounded-xl text-xs font-bold border">Income</button>
+        <button type="button" id="btn-type-investment" onclick="setEntryType('investment')" class="py-2.5 rounded-xl text-xs font-bold border">Savings/DPS</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-[11px] text-slate-400 font-semibold">Amount (BDT ৳)</label>
+          <input id="entry-amount" type="number" step="any" placeholder="e.g. 2500" class="w-full px-3.5 py-2.5 rounded-xl text-base font-bold mt-1" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] text-slate-400 font-semibold">Category</label>
+            <select id="entry-category" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1"></select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-semibold">Date</label>
+            <input id="entry-date" type="date" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-slate-400 font-semibold">Description / Note</label>
+          <input id="entry-note" type="text" placeholder="e.g. Officers' Mess Bill / Fuel / CSD" class="w-full px-3.5 py-2.5 rounded-xl text-xs mt-1" />
+        </div>
+      </div>
+
+      <button onclick="saveEntry()" class="w-full py-3.5 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20">
+        Save Entry
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 glass border-t border-slate-800 px-2 py-2">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-emerald-400 font-bold">
+        <span class="text-base">🏠</span>
+        <span class="text-[10px]">Home</span>
+      </button>
+      <button onclick="switchTab('ledger')" id="nav-ledger" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-400 font-medium">
+        <span class="text-base">📋</span>
+        <span class="text-[10px]">Ledger</span>
+      </button>
+      <button onclick="switchTab('budgets')" id="nav-budgets" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-400 font-medium">
+        <span class="text-base">🎯</span>
+        <span class="text-[10px]">Budgets</span>
+      </button>
+      <button onclick="switchTab('backup')" id="nav-backup" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-400 font-medium">
+        <span class="text-base">💾</span>
+        <span class="text-[10px]">Backup</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    const STORAGE_KEY = 'capt_toha_fin_manual_v1';
+
+    const CATEGORIES = [
+      'Pay & Allowances',
+      'Mess Bill & Cantt',
+      'Vehicle & Fuel',
+      'Groceries & CSD',
+      'Family & Remittance',
+      'Utilities & Internet',
+      'Savings / DPS / Trust',
+      'Miscellaneous'
+    ];
+
+    const DEFAULT_STATE = {
+      transactions: [
+        { id: 't1', type: 'income', amount: 82500, category: 'Pay & Allowances', date: new Date().toISOString().slice(0, 10), note: 'Monthly Pay & Allowances' },
+        { id: 't2', type: 'expense', amount: 4500, category: 'Mess Bill & Cantt', date: new Date().toISOString().slice(0, 10), note: 'Officers Mess Subscription & Dining' },
+        { id: 't3', type: 'expense', amount: 6200, category: 'Vehicle & Fuel', date: new Date().toISOString().slice(0, 10), note: 'Octane Refill & Maintenance' },
+        { id: 't4', type: 'expense', amount: 5800, category: 'Groceries & CSD', date: new Date().toISOString().slice(0, 10), note: 'CSD Monthly Ration & Supplies' },
+        { id: 't5', type: 'investment', amount: 15000, category: 'Savings / DPS / Trust', date: new Date().toISOString().slice(0, 10), note: 'Trust Bank Monthly DPS' }
+      ],
+      budgets: {
+        'Mess Bill & Cantt': 8000,
+        'Vehicle & Fuel': 12000,
+        'Groceries & CSD': 15000,
+        'Family & Remittance': 20000,
+        'Utilities & Internet': 5000,
+        'Miscellaneous': 7000
+      },
+      goals: [
+        { id: 'g1', name: 'Emergency Reserve Fund', current: 185000, target: 300000 },
+        { id: 'g2', name: 'Vehicle Upgrade / Maintenance Fund', current: 95000, target: 200000 }
+      ]
+    };
+
+    let state = loadState();
+    let currentEntryType = 'expense';
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_STATE));
+      } catch (e) {
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    function fmt(num) {
+      return '৳' + Number(num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    function populateCategoryDropdowns() {
+      const entryCat = document.getElementById('entry-category');
+      const filterCat = document.getElementById('filter-cat');
+      entryCat.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      filterCat.innerHTML = `<option value="all">All Categories</option>` + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    function switchTab(tab) {
+      ['dashboard', 'ledger', 'budgets', 'backup'].forEach(t => {
+        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        const nav = document.getElementById('nav-' + t);
+        if (t === tab) {
+          nav.className = 'py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-emerald-400 font-bold';
+        } else {
+          nav.className = 'py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-400 font-medium';
+        }
+      });
+    }
+
+    function setEntryType(type) {
+      currentEntryType = type;
+      const styles = {
+        expense: 'bg-rose-500/20 border-rose-500 text-rose-300',
+        income: 'bg-emerald-500/20 border-emerald-500 text-emerald-300',
+        investment: 'bg-sky-500/20 border-sky-500 text-sky-300'
+      };
+      ['expense', 'income', 'investment'].forEach(t => {
+        const btn = document.getElementById('btn-type-' + t);
+        btn.className = 'py-2.5 rounded-xl text-xs font-bold border ' + (t === type ? styles[t] : 'border-slate-700 text-slate-400 bg-slate-800/60');
+      });
+
+      const catSelect = document.getElementById('entry-category');
+      if (type === 'income') catSelect.value = 'Pay & Allowances';
+      else if (type === 'investment') catSelect.value = 'Savings / DPS / Trust';
+      else if (catSelect.value === 'Pay & Allowances') catSelect.value = 'Mess Bill & Cantt';
+    }
+
+    function openEntryModal(defaultType = 'expense', editId = null) {
+      document.getElementById('entry-modal').classList.remove('hidden');
+      document.getElementById('entry-modal').classList.add('flex');
+
+      if (editId) {
+        const tx = state.transactions.find(t => t.id === editId);
+        if (tx) {
+          document.getElementById('modal-title').textContent = 'Edit Entry';
+          document.getElementById('entry-id').value = tx.id;
+          setEntryType(tx.type);
+          document.getElementById('entry-amount').value = tx.amount;
+          document.getElementById('entry-category').value = tx.category;
+          document.getElementById('entry-date').value = tx.date;
+          document.getElementById('entry-note').value = tx.note;
+          return;
+        }
+      }
+
+      document.getElementById('modal-title').textContent = 'Add Financial Entry';
+      document.getElementById('entry-id').value = '';
+      setEntryType(defaultType);
+      document.getElementById('entry-amount').value = '';
+      document.getElementById('entry-date').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('entry-note').value = '';
+    }
+
+    function closeEntryModal() {
+      document.getElementById('entry-modal').classList.add('hidden');
+      document.getElementById('entry-modal').classList.remove('flex');
+    }
+
+    function saveEntry() {
+      const id = document.getElementById('entry-id').value;
+      const amount = parseFloat(document.getElementById('entry-amount').value);
+      const category = document.getElementById('entry-category').value;
+      const date = document.getElementById('entry-date').value || new Date().toISOString().slice(0, 10);
+      const note = document.getElementById('entry-note').value.trim() || category;
+
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      if (id) {
+        const idx = state.transactions.findIndex(t => t.id === id);
+        if (idx > -1) state.transactions[idx] = { id, type: currentEntryType, amount, category, date, note };
+      } else {
+        state.transactions.unshift({
+          id: 'tx_' + Date.now(),
+          type: currentEntryType,
+          amount,
+          category,
+          date,
+          note
+        });
+      }
+
+      closeEntryModal();
+      saveState();
+    }
+
+    function deleteEntry(id) {
+      if (!confirm('Delete this entry?')) return;
+      state.transactions = state.transactions.filter(t => t.id !== id);
+      saveState();
+    }
+
+    function editBudgetLimit(cat) {
+      const current = state.budgets[cat] || 10000;
+      const next = prompt(`Set monthly budget limit for ${cat} (BDT):`, current);
+      if (next !== null && !isNaN(parseFloat(next))) {
+        state.budgets[cat] = Math.max(0, parseFloat(next));
+        saveState();
+      }
+    }
+
+    function addGoalFunds(id) {
+      const g = state.goals.find(x => x.id === id);
+      if (!g) return;
+      const add = prompt(`Add amount (BDT) to "${g.name}":`, 5000);
+      if (add !== null && !isNaN(parseFloat(add))) {
+        g.current += parseFloat(add);
+        saveState();
+      }
+    }
+
+    function addNewGoal() {
+      const name = prompt('Goal Name (e.g. Plot / Car / Tour):');
+      if (!name) return;
+      const target = parseFloat(prompt('Target Amount (BDT):', '100000') || '100000');
+      state.goals.push({ id: 'g_' + Date.now(), name, current: 0, target });
+      saveState();
+    }
+
+    function renderAll() {
+      const nowMonth = new Date().toISOString().slice(0, 7);
+      document.getElementById('dash-month-label').textContent = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+      let totalIncome = 0, totalExpense = 0, totalSavings = 0;
+      const catSpend = {};
+
+      state.transactions.forEach(t => {
+        if (t.type === 'income') totalIncome += t.amount;
+        else if (t.type === 'expense') {
+          totalExpense += t.amount;
+          if (t.date.startsWith(nowMonth)) {
+            catSpend[t.category] = (catSpend[t.category] || 0) + t.amount;
+          }
+        } else if (t.type === 'investment') {
+          totalSavings += t.amount;
+        }
+      });
+
+      const netBalance = totalIncome - totalExpense - totalSavings;
+      document.getElementById('kpi-net').textContent = fmt(netBalance);
+      document.getElementById('kpi-income').textContent = fmt(totalIncome);
+      document.getElementById('kpi-expense').textContent = fmt(totalExpense);
+      document.getElementById('kpi-savings').textContent = fmt(totalSavings);
+
+      // Render Category Progress Bars
+      const budgetCats = Object.keys(state.budgets);
+      let totalBudget = 0, totalMonthSpend = 0;
+      const barsHtml = budgetCats.map(cat => {
+        const spent = catSpend[cat] || 0;
+        const limit = state.budgets[cat] || 1;
+        totalBudget += limit;
+        totalMonthSpend += spent;
+        const pct = Math.min(100, Math.round((spent / limit) * 100));
+        const barColor = pct >= 100 ? 'bg-rose-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="font-medium text-slate-300">${cat}</span>
+              <span class="text-slate-400"><strong class="text-white">${fmt(spent)}</strong> / ${fmt(limit)}</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="${barColor} h-full rounded-full" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      document.getElementById('category-bars').innerHTML = barsHtml;
+      document.getElementById('budget-summary-pill').textContent = `${fmt(totalMonthSpend)} of ${fmt(totalBudget)}`;
+
+      // Render Recent List
+      const renderTxRow = (t) => {
+        const sign = t.type === 'income' ? '+' : '-';
+        const color = t.type === 'income' ? 'text-emerald-400' : t.type === 'investment' ? 'text-sky-400' : 'text-rose-400';
+        return `
+          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2">
+            <div class="min-w-0" onclick="openEntryModal('${t.type}', '${t.id}')">
+              <div class="text-xs font-bold text-white truncate">${t.note}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">${t.category} • ${t.date}</div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-xs font-extrabold ${color}">${sign}${fmt(t.amount)}</span>
+              <button onclick="deleteEntry('${t.id}')" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5">✕</button>
+            </div>
+          </div>
+        `;
+      };
+
+      document.getElementById('recent-list').innerHTML = state.transactions.slice(0, 6).map(renderTxRow).join('') || `<p class="text-xs text-slate-500 text-center py-4">No transactions yet.</p>`;
+
+      // Render Full Ledger
+      const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const fType = document.getElementById('filter-type')?.value || 'all';
+      const fCat = document.getElementById('filter-cat')?.value || 'all';
+
+      const filtered = state.transactions.filter(t => {
+        if (fType !== 'all' && t.type !== fType) return false;
+        if (fCat !== 'all' && t.category !== fCat) return false;
+        if (q && !t.note.toLowerCase().includes(q) && !t.category.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      document.getElementById('full-ledger-list').innerHTML = filtered.map(renderTxRow).join('') || `<p class="text-xs text-slate-500 text-center py-6">No matching entries found.</p>`;
+
+      // Render Budgets Editor
+      document.getElementById('budget-editor-list').innerHTML = budgetCats.map(cat => `
+        <div onclick="editBudgetLimit('${cat}')" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between cursor-pointer">
+          <span class="text-xs font-semibold text-slate-200">${cat}</span>
+          <span class="text-xs font-bold text-emerald-400">${fmt(state.budgets[cat])} ✎</span>
+        </div>
+      `).join('');
+
+      // Render Goals
+      document.getElementById('goals-list').innerHTML = state.goals.map(g => {
+        const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+        return `
+          <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">${g.name}</span>
+              <button onclick="addGoalFunds('${g.id}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400">+ Add Funds</button>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400">
+              <span>Saved: <strong class="text-emerald-400">${fmt(g.current)}</strong></span>
+              <span>Target: ${fmt(g.target)} (${pct}%)</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="bg-sky-500 h-full rounded-full" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function exportCSV() {
+      const rows = [['Date', 'Type', 'Category', 'Amount_BDT', 'Note']];
+      state.transactions.forEach(t => rows.push([t.date, t.type, `"${t.category}"`, t.amount, `"${t.note.replace(/"/g, '""')}"`]));
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Capt_Toha_Finance_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Capt_Toha_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (parsed && Array.isArray(parsed.transactions)) {
+            state = parsed;
+            saveState();
+            alert('Backup restored successfully!');
+          }
+        } catch (err) {
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAllData() {
+      if (!confirm('Reset all entries back to default sample data?')) return;
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      saveState();
+    }
+
+    populateCategoryDropdowns();
+    renderAll();
+  </script>
+</body>
+</html>

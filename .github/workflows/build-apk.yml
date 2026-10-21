@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 3. Accept Android SDK Licenses Automatically
+      - name: 3. Accept Android SDK Licenses
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
@@ -28,11 +28,13 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: 5. Generate Complete Native Android SMS-Sync Project
+      - name: 5. Generate Clean Android Project with Custom App Icon
         run: |
           mkdir -p android-project/app/src/main/assets
           mkdir -p android-project/app/src/main/java/com/capttoha/finflow
           mkdir -p android-project/app/src/main/res/values
+          mkdir -p android-project/app/src/main/res/drawable
+          mkdir -p android-project/app/src/main/res/mipmap-anydpi-v26
 
           if [ -f "index.html" ]; then
             cp index.html android-project/app/src/main/assets/index.html
@@ -85,10 +87,10 @@ jobs:
 
               defaultConfig {
                   applicationId "com.capttoha.finflow"
-                  minSdk 24
+                  minSdk 26
                   targetSdk 34
-                  versionCode 2
-                  versionName "1.1"
+                  versionCode 4
+                  versionName "2.1"
               }
 
               buildTypes {
@@ -108,7 +110,6 @@ jobs:
           dependencies {
               implementation 'androidx.core:core-ktx:1.12.0'
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'androidx.webkit:webkit:1.10.0'
           }
           EOF
 
@@ -118,16 +119,65 @@ jobs:
           </resources>
           EOF
 
+          # Custom Icon Background (Deep Military/Fintech Slate & Emerald)
+          cat << 'EOF' > android-project/app/src/main/res/drawable/ic_launcher_background.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <path
+                  android:fillColor="#090D16"
+                  android:pathData="M0,0h108v108h-108z"/>
+              <path
+                  android:fillColor="#064E3B"
+                  android:pathData="M0,70 L108,35 L108,108 L0,108 Z"/>
+          </vector>
+          EOF
+
+          # Custom Icon Foreground ("TT" Monogram + Emerald Shield Border)
+          cat << 'EOF' > android-project/app/src/main/res/drawable/ic_launcher_foreground.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp"
+              android:height="108dp"
+              android:viewportWidth="108"
+              android:viewportHeight="108">
+              <!-- Outer Emerald Ring -->
+              <path
+                  android:fillColor="#10B981"
+                  android:pathData="M54,24 C70.57,24 84,37.43 84,54 C84,70.57 70.57,84 54,84 C37.43,84 24,70.57 24,54 C24,37.43 37.43,24 54,24 Z M54,28 C39.64,28 28,39.64 28,54 C28,68.36 39.64,80 54,80 C68.36,80 80,68.36 80,54 C80,39.64 68.36,28 54,28 Z"/>
+              <!-- First "T" (Gold/Amber) -->
+              <path
+                  android:fillColor="#FBBF24"
+                  android:pathData="M34,40 H52 V45 H45.5 V68 H40.5 V45 H34 Z"/>
+              <!-- Second "T" (Emerald White) -->
+              <path
+                  android:fillColor="#ECFDF5"
+                  android:pathData="M56,40 H74 V45 H67.5 V68 H62.5 V45 H56 Z"/>
+          </vector>
+          EOF
+
+          # Adaptive Launcher Icon Binding
+          cat << 'EOF' > android-project/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@drawable/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_launcher_foreground"/>
+          </adaptive-icon>
+          EOF
+
           cat << 'EOF' > android-project/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
               <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.RECEIVE_SMS" />
-              <uses-permission android:name="android.permission.READ_SMS" />
 
               <application
                   android:allowBackup="true"
+                  android:icon="@mipmap/ic_launcher"
+                  android:roundIcon="@mipmap/ic_launcher"
                   android:label="@string/app_name"
                   android:supportsRtl="true"
                   android:theme="@style/Theme.AppCompat.NoActionBar">
@@ -141,163 +191,28 @@ jobs:
                           <category android:name="android.intent.category.LAUNCHER" />
                       </intent-filter>
                   </activity>
-
-                  <receiver
-                      android:name=".SmsReceiver"
-                      android:exported="true"
-                      android:permission="android.permission.BROADCAST_SMS">
-                      <intent-filter android:priority="999">
-                          <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                      </intent-filter>
-                  </receiver>
               </application>
           </manifest>
-          EOF
-
-          cat << 'EOF' > android-project/app/src/main/java/com/capttoha/finflow/SmsReceiver.kt
-          package com.capttoha.finflow
-
-          import android.content.BroadcastReceiver
-          import android.content.Context
-          import android.content.Intent
-          import android.provider.Telephony
-          import org.json.JSONArray
-          import org.json.JSONObject
-
-          class SmsReceiver : BroadcastReceiver() {
-              override fun onReceive(context: Context, intent: Intent) {
-                  if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
-                      val msgs = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-                      if (msgs.isNullOrEmpty()) return
-
-                      val sender = msgs[0]?.originatingAddress ?: "Unknown"
-                      val body = msgs.joinToString("") { it.messageBody ?: "" }
-                      val ts = System.currentTimeMillis()
-
-                      val prefs = context.getSharedPreferences("TohaSmsQueue", Context.MODE_PRIVATE)
-                      val existingJson = prefs.getString("pending_sms", "[]") ?: "[]"
-                      val arr = JSONArray(existingJson)
-
-                      val obj = JSONObject().apply {
-                          put("sender", sender)
-                          put("body", body)
-                          put("ts", ts)
-                      }
-                      arr.put(obj)
-                      prefs.edit().putString("pending_sms", arr.toString()).apply()
-
-                      MainActivity.flushSmsIfReady(context)
-                  }
-              }
-          }
           EOF
 
           cat << 'EOF' > android-project/app/src/main/java/com/capttoha/finflow/MainActivity.kt
           package com.capttoha.finflow
 
-          import android.Manifest
           import android.annotation.SuppressLint
-          import android.content.Context
-          import android.content.pm.PackageManager
-          import android.net.Uri
           import android.os.Bundle
-          import android.webkit.JavascriptInterface
           import android.webkit.WebChromeClient
           import android.webkit.WebView
           import android.webkit.WebViewClient
           import androidx.activity.OnBackPressedCallback
           import androidx.appcompat.app.AppCompatActivity
-          import androidx.core.app.ActivityCompat
-          import androidx.core.content.ContextCompat
-          import org.json.JSONArray
-          import org.json.JSONObject
 
           class MainActivity : AppCompatActivity() {
-
-              companion object {
-                  var webViewRef: WebView? = null
-                  var pageLoaded: Boolean = false
-
-                  fun flushSmsIfReady(context: Context) {
-                      val wv = webViewRef ?: return
-                      if (!pageLoaded) return
-
-                      val prefs = context.getSharedPreferences("TohaSmsQueue", Context.MODE_PRIVATE)
-                      val existingJson = prefs.getString("pending_sms", "[]") ?: "[]"
-                      val arr = JSONArray(existingJson)
-                      if (arr.length() == 0) return
-
-                      prefs.edit().putString("pending_sms", "[]").apply()
-
-                      wv.post {
-                          for (i in 0 until arr.length()) {
-                              val item = arr.getJSONObject(i)
-                              val s = JSONObject.quote(item.optString("sender", "Bank"))
-                              val b = JSONObject.quote(item.optString("body", ""))
-                              val t = item.optLong("ts", System.currentTimeMillis())
-                              wv.evaluateJavascript(
-                                  "if(window.onNativeSmsReceived){window.onNativeSmsReceived($s,$b,$t);}",
-                                  null
-                              )
-                          }
-                      }
-                  }
-              }
-
-              inner class SmsJsBridge(private val ctx: Context) {
-                  @JavascriptInterface
-                  fun scanPastSms(days: Int): Int {
-                      if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.READ_SMS)
-                          != PackageManager.PERMISSION_GRANTED) {
-                          requestSmsPermissions()
-                          return 0
-                      }
-
-                      val cutoffTime = System.currentTimeMillis() - (days.toLong() * 24L * 60L * 60L * 1000L)
-                      val uri = Uri.parse("content://sms/inbox")
-                      val projection = arrayOf("address", "body", "date")
-                      val selection = "date >= ?"
-                      val selectionArgs = arrayOf(cutoffTime.toString())
-                      val sortOrder = "date ASC"
-
-                      val finRegex = Regex("(?i)(bdt|tk|taka|bkash|nagad|rocket|tbl|trust|city|brac|dbbl|ebl|credited|debited|trxid|avl bal)")
-                      var matchedCount = 0
-
-                      val cursor = ctx.contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)
-                      cursor?.use { c ->
-                          val addrIdx = c.getColumnIndexOrThrow("address")
-                          val bodyIdx = c.getColumnIndexOrThrow("body")
-                          val dateIdx = c.getColumnIndexOrThrow("date")
-
-                          while (c.moveToNext()) {
-                              val sender = c.getString(addrIdx) ?: "Unknown"
-                              val body = c.getString(bodyIdx) ?: ""
-                              val ts = c.getLong(dateIdx)
-
-                              if (finRegex.containsMatchIn(body) || finRegex.containsMatchIn(sender)) {
-                                  matchedCount++
-                                  val s = JSONObject.quote(sender)
-                                  val b = JSONObject.quote(body)
-                                  webViewRef?.post {
-                                      webViewRef?.evaluateJavascript(
-                                          "if(window.onNativeSmsReceived){window.onNativeSmsReceived($s,$b,$ts);}",
-                                          null
-                                      )
-                                  }
-                              }
-                          }
-                      }
-                      return matchedCount
-                  }
-              }
-
               @SuppressLint("SetJavaScriptEnabled")
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
 
                   val webView = WebView(this)
                   setContentView(webView)
-                  webViewRef = webView
 
                   webView.settings.apply {
                       javaScriptEnabled = true
@@ -306,16 +221,8 @@ jobs:
                       allowFileAccess = true
                   }
 
-                  webView.addJavascriptInterface(SmsJsBridge(this), "AndroidSmsBridge")
                   webView.webChromeClient = WebChromeClient()
-                  webView.webViewClient = object : WebViewClient() {
-                      override fun onPageFinished(view: WebView?, url: String?) {
-                          super.onPageFinished(view, url)
-                          pageLoaded = true
-                          flushSmsIfReady(this@MainActivity)
-                      }
-                  }
-
+                  webView.webViewClient = WebViewClient()
                   webView.loadUrl("file:///android_asset/index.html")
 
                   onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -323,31 +230,6 @@ jobs:
                           if (webView.canGoBack()) webView.goBack() else finish()
                       }
                   })
-
-                  requestSmsPermissions()
-              }
-
-              override fun onResume() {
-                  super.onResume()
-                  flushSmsIfReady(this)
-              }
-
-              override fun onDestroy() {
-                  pageLoaded = false
-                  webViewRef = null
-                  super.onDestroy()
-              }
-
-              private fun requestSmsPermissions() {
-                  val needed = arrayOf(
-                      Manifest.permission.RECEIVE_SMS,
-                      Manifest.permission.READ_SMS
-                  ).filter {
-                      ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-                  }
-                  if (needed.isNotEmpty()) {
-                      ActivityCompat.requestPermissions(this, needed.toTypedArray(), 1001)
-                  }
               }
           }
           EOF

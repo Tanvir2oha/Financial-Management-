@@ -1,0 +1,2859 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Capt Toha Finance">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Capt Tanvir Ahmed Toha — Personal Finance & Ledger</title>
+
+    <!-- Dynamic PWA App Icon (SVG Data URI) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='100%25' stop-color='%234f46e5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='120' height='120' rx='28' fill='url(%23g)'/%3E%3Ctext x='60' y='74' font-family='Inter, sans-serif' font-size='44' font-weight='800' fill='white' text-anchor='middle'%3ETT%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='28' fill='%2310b981'/%3E%3Ctext x='60' y='74' font-family='sans-serif' font-size='44' font-weight='bold' fill='white' text-anchor='middle'%3ETT%3C/text%3E%3C/svg%3E">
+    <!-- Dynamic Manifest Link (Populated on Load) -->
+    <link rel="manifest" id="pwa-manifest">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#141d2e',
+                            950: '#090d16',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        .donut-segment {
+            transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1), stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Hide scrollbar for horizontal pill filters on mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col lg:flex-row transition-colors duration-200 pb-20 lg:pb-0">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 sm:max-w-sm w-auto pointer-events-none"></div>
+
+    <!-- Custom Confirmation / Action Modal -->
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl transform transition-all">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div id="modal-icon-container" class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 id="modal-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Confirm Action</h3>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modal-body" class="text-sm text-slate-600 dark:text-slate-300 mb-6">
+                Are you sure you want to proceed?
+            </div>
+            <div id="modal-footer" class="flex justify-end gap-3">
+                <button onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    Cancel
+                </button>
+                <button id="modal-confirm-btn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Sidebar Navigation (Hidden on Mobile, replaced by Mobile Bottom Nav) -->
+    <aside class="hidden lg:flex w-72 bg-slate-900 text-white border-r border-slate-800 flex-shrink-0 flex-col justify-between sticky top-0 h-screen z-30">
+        <div>
+            <!-- Personalized Commander Brand Header -->
+            <div class="p-5 border-b border-slate-800/80">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-emerald-500/25 border border-emerald-400/30 flex-shrink-0">
+                        <span class="font-extrabold text-base tracking-wider text-white">TT</span>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Corps of EME • BD Army</span>
+                        </div>
+                        <h2 class="font-bold text-sm text-white truncate mt-1">Capt Tanvir Ahmed Toha</h2>
+                        <p class="text-[11px] text-slate-400 truncate">Personal Finance & SMS Sync</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex flex-col p-4 gap-1.5">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg shadow-emerald-600/25">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        <span>Home & Overview</span>
+                    </div>
+                </button>
+                <button onclick="switchTab('transactions')" data-tab="transactions" class="nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+                        <span>Ledger & Log Entry</span>
+                    </div>
+                    <span id="nav-tx-count" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">0</span>
+                </button>
+                <button onclick="switchTab('smssync')" data-tab="smssync" class="nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="message-square-Dot" class="w-4 h-4 text-emerald-400"></i>
+                        <span>SMS Auto-Sync (APK)</span>
+                    </div>
+                    <span id="nav-sms-badge" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">LIVE</span>
+                </button>
+                <button onclick="switchTab('budgets')" data-tab="budgets" class="nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="target" class="w-4 h-4"></i>
+                        <span>Budgets & Goals</span>
+                    </div>
+                </button>
+                <button onclick="switchTab('appguide')" data-tab="appguide" class="nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="smartphone" class="w-4 h-4 text-indigo-400"></i>
+                        <span>Install & Backup</span>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300">PWA</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Bottom Card / Quick Summary -->
+        <div class="p-4 border-t border-slate-800/80">
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/60">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-medium text-slate-400">Financial Readiness</span>
+                    <span id="health-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">Optimal</span>
+                </div>
+                <p id="health-tip" class="text-xs text-slate-300 leading-relaxed mb-3">
+                    Capt Toha, your monthly savings rate is above the 25% target. Keep building your DPS & funds!
+                </p>
+                <div class="flex gap-2">
+                    <button onclick="resetSampleDataPrompt()" class="w-full py-2 px-3 rounded-xl text-xs font-medium bg-slate-700/70 hover:bg-slate-700 text-slate-200 transition flex items-center justify-center gap-1.5">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset Demo</span>
+                    </button>
+                    <button onclick="clearAllDataPrompt()" class="py-2 px-3 rounded-xl text-xs font-medium bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition" title="Clear All Data">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Mobile-First Personalized App Bar -->
+        <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 px-4 sm:px-8 py-3.5">
+            <div class="flex items-center justify-between gap-3">
+                <!-- Left Profile & Page Title -->
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="lg:hidden w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-600 to-indigo-700 flex items-center justify-center shadow-md shadow-emerald-500/20 border border-emerald-400/30 flex-shrink-0">
+                        <span class="font-extrabold text-xs tracking-wider text-white">TT</span>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h1 id="page-title" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight truncate">Capt Tanvir Ahmed Toha</h1>
+                            <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                <i data-lucide="shield-check" class="w-3 h-3"></i> Corps of EME • BD Army
+                            </span>
+                        </div>
+                        <p id="current-date-label" class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">Personal Finance & SMS Auto-Ledger • October 2026</p>
+                    </div>
+                </div>
+
+                <!-- Right Controls -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <!-- Currency Selector -->
+                    <div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5 sm:p-1 border border-slate-200 dark:border-slate-700">
+                        <select id="currency-select" onchange="changeCurrency(this.value)" aria-label="Currency selector" class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 py-1.5 pl-2.5 pr-6 rounded-lg focus:outline-none cursor-pointer">
+                            <option value="BDT" class="bg-white dark:bg-slate-800">BDT (৳)</option>
+                            <option value="USD" class="bg-white dark:bg-slate-800">USD ($)</option>
+                            <option value="EUR" class="bg-white dark:bg-slate-800">EUR (€)</option>
+                        </select>
+                    </div>
+
+                    <!-- SMS Auto-Sync Quick Button -->
+                    <button onclick="switchTab('smssync')" class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 transition" title="SMS Auto-Sync & Parser">
+                        <i data-lucide="message-square-plus" class="w-4 h-4"></i>
+                        <span class="hidden md:inline">SMS Sync</span>
+                    </button>
+
+                    <!-- Quick Add Transaction CTA (Desktop) -->
+                    <button onclick="openQuickAddTransaction()" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Log Entry</span>
+                    </button>
+
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition" title="Toggle Dark/Light Theme">
+                        <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main View Container -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8">
+
+            <!-- Personalized Welcome Banner (Mobile & Desktop) -->
+            <div id="welcome-banner" class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950 text-white border border-slate-800 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h2 class="text-sm sm:text-base font-bold text-white">Assalamu Alaikum, Capt Tanvir Ahmed Toha</h2>
+                            <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Corps of EME</span>
+                            <span id="banner-bridge-status" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">SMS Bridge Ready</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            Native Android SMS Auto-Reader (<code class="text-emerald-300">READ_SMS</code> / <code class="text-emerald-300">RECEIVE_SMS</code>) & BD Bank/bKash/Nagad parser active.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 self-end sm:self-center">
+                    <button onclick="switchTab('smssync')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 transition flex items-center gap-1.5">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-indigo-300"></i>
+                        <span>SMS Auto-Sync</span>
+                    </button>
+                    <button onclick="openQuickAddTransaction()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition flex items-center gap-1.5 shadow">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                        <span>Quick Entry</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 1. SUMMARY KPI CARDS -->
+            <section id="kpi-section" class="space-y-5">
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5">
+                    <!-- Total Net Worth / Balance -->
+                    <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Net Worth</span>
+                            <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                                <i data-lucide="landmark" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div id="kpi-net-worth" class="text-2xl sm:text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white mb-2">
+                            ৳0
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span id="kpi-liquid-cash">Liquid: ৳0</span>
+                            <span id="kpi-goal-savings" class="text-indigo-500 font-medium">Funds: ৳0</span>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Income -->
+                    <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Oct Income</span>
+                            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div id="kpi-income" class="text-lg sm:text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mb-1.5">
+                            ৳0
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            Pay & Allowances
+                        </div>
+                    </div>
+
+                    <!-- Monthly Expenses -->
+                    <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Oct Expenses</span>
+                            <div class="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                                <i data-lucide="trending-down" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div id="kpi-expenses" class="text-lg sm:text-2xl font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 mb-1.5">
+                            ৳0
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span id="kpi-expense-tx-count" class="truncate">0 entries</span>
+                            <span id="kpi-investments-sub" class="text-indigo-500 font-medium hidden sm:inline">DPS: ৳0</span>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Savings Rate -->
+                    <div class="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Savings Rate</span>
+                            <div class="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div id="kpi-savings-rate" class="text-2xl sm:text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-white mb-2">
+                            0.0%
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span id="kpi-net-saved">Net Saved: ৳0</span>
+                            <span class="text-emerald-500 font-medium">Target: 25%+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overall Monthly Budget Utilization Bar -->
+                <div class="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                            <h2 class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">October 2026 Monthly Budget Utilization</h2>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-mono">
+                            <span id="overall-budget-spent" class="font-bold text-slate-900 dark:text-white">৳0</span>
+                            <span class="text-slate-400">/</span>
+                            <span id="overall-budget-limit" class="text-slate-500 dark:text-slate-400">৳0</span>
+                            <span id="overall-budget-pct" class="px-2 py-0.5 rounded-lg font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">0%</span>
+                        </div>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
+                        <div id="overall-budget-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span id="overall-budget-status">Safe zone — well within monthly category limits</span>
+                        <span id="overall-budget-remaining" class="font-mono font-medium">Remaining: ৳0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. INTERACTIVE CHARTS & ANALYTICS -->
+            <section id="charts-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Expense Breakdown by Category (Donut + Legend) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Oct Outflow Breakdown</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Mess, Family, Fuel & DPS allocation</p>
+                            </div>
+                            <span class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            </span>
+                        </div>
+
+                        <!-- SVG Donut Chart -->
+                        <div class="relative flex items-center justify-center my-3">
+                            <svg class="w-44 h-44 -rotate-90 transform" viewBox="0 0 120 120" id="expense-donut-svg">
+                                <circle cx="60" cy="60" r="46" fill="transparent" stroke="currentColor" stroke-width="14" class="text-slate-100 dark:text-slate-800"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Oct Outflow</span>
+                                <span id="donut-center-total" class="text-base sm:text-lg font-bold font-mono text-slate-900 dark:text-white mt-0.5">৳0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown Legend List -->
+                    <div id="expense-breakdown-list" class="space-y-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- 6-Month Cash Flow Comparison (Income vs Expenses Bar Chart) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+                            <div>
+                                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">6-Month Cash Flow</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Income vs. Expenses & DPS (May – Oct 2026)</p>
+                            </div>
+                            <!-- Chart Legend -->
+                            <div class="flex items-center gap-3 text-xs font-medium">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span>
+                                    <span class="text-slate-600 dark:text-slate-300">Income</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-rose-500 inline-block"></span>
+                                    <span class="text-slate-600 dark:text-slate-300">Expense</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block"></span>
+                                    <span class="text-slate-600 dark:text-slate-300">DPS/Saved</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bar Chart Area -->
+                        <div id="cashflow-chart-container" class="h-60 pt-6 pb-2 px-1 sm:px-2 flex items-end justify-between gap-2 sm:gap-4 border-b border-slate-200 dark:border-slate-800 relative">
+                            <!-- Dynamically populated bars -->
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow Insight Footer -->
+                    <div class="mt-4 pt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span>Tap or hover any month to inspect exact figures.</span>
+                        <span id="six-month-avg-savings" class="font-mono font-semibold text-emerald-600 dark:text-emerald-400">6M Net Surplus: ৳0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TRANSACTION TRACKER (Form + Mobile-Friendly Ledger) -->
+            <section id="transactions-section" class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                <!-- Transaction Entry / Edit Form -->
+                <div class="xl:col-span-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm h-fit">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                <i data-lucide="file-plus-2" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 id="tx-form-title" class="text-base font-bold text-slate-900 dark:text-white">Log Transaction</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Record pay, mess bill, expense or DPS</p>
+                            </div>
+                        </div>
+                        <button id="cancel-edit-btn" onclick="resetTransactionForm()" class="hidden text-xs font-semibold text-rose-500 hover:underline">
+                            Cancel Edit
+                        </button>
+                    </div>
+
+                    <form id="transaction-form" onsubmit="handleTransactionSubmit(event)" class="space-y-4">
+                        <input type="hidden" id="tx-edit-id" value="">
+
+                        <!-- Transaction Type Segmented Control -->
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Transaction Type</label>
+                            <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                                <button type="button" onclick="setTxType('Expense')" id="type-btn-Expense" class="tx-type-btn py-2.5 px-3 rounded-lg text-xs font-semibold transition-all bg-rose-500 text-white shadow">
+                                    Expense
+                                </button>
+                                <button type="button" onclick="setTxType('Income')" id="type-btn-Income" class="tx-type-btn py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300">
+                                    Income
+                                </button>
+                                <button type="button" onclick="setTxType('Investment')" id="type-btn-Investment" class="tx-type-btn py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300">
+                                    Savings/DPS
+                                </button>
+                            </div>
+                            <input type="hidden" id="tx-type" value="Expense">
+                        </div>
+
+                        <!-- Title / Description -->
+                        <div>
+                            <label for="tx-title" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Title / Particular</label>
+                            <input type="text" id="tx-title" required placeholder="e.g., Officers' Mess Bill, Octane Refill, Monthly Pay" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+
+                        <!-- Amount & Category Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="tx-amount" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                    Amount (<span id="form-currency-symbol">৳</span>)
+                                </label>
+                                <input type="number" id="tx-amount" required min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+
+                            <div>
+                                <label for="tx-category" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                                <select id="tx-category" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="Mess Bill">Mess Bill</option>
+                                    <option value="Family & Utilities">Family & Utilities</option>
+                                    <option value="Vehicle & Fuel">Vehicle & Fuel</option>
+                                    <option value="Groceries">Groceries</option>
+                                    <option value="Savings / DPS">Savings / DPS</option>
+                                    <option value="Education & Courses">Education & Courses</option>
+                                    <option value="Salary & Allowances">Salary & Allowances</option>
+                                    <option value="Miscellaneous">Miscellaneous</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Date & Payment Method Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="tx-date" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Date</label>
+                                <input type="date" id="tx-date" required class="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+
+                            <div>
+                                <label for="tx-method" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Payment Channel</label>
+                                <select id="tx-method" required class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="Trust Bank / Bank Transfer">Trust Bank / Bank Transfer</option>
+                                    <option value="bKash / Nagad">bKash / Nagad</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Debit / Credit Card">Debit / Credit Card</option>
+                                    <option value="Standing Instruction / Auto">Standing Instruction / Auto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="tx-submit-btn" class="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                            <span id="tx-submit-label">Save to Ledger</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Filterable & Searchable Transaction History Table -->
+                <div class="xl:col-span-8 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Capt Toha's Transaction Ledger</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Tap any entry's pencil icon to edit or trash icon to delete</p>
+                            </div>
+
+                            <!-- Search & Type Filter -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="relative flex-1 sm:flex-initial">
+                                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                                    <input type="text" id="filter-search" oninput="renderTransactions()" placeholder="Search ledger..." class="w-full sm:w-44 pl-9 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                </div>
+
+                                <select id="filter-type" onchange="renderTransactions()" aria-label="Filter by type" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none">
+                                    <option value="ALL">All Types</option>
+                                    <option value="Income">Income</option>
+                                    <option value="Expense">Expense</option>
+                                    <option value="Investment">Savings/DPS</option>
+                                </select>
+
+                                <select id="filter-category" onchange="renderTransactions()" aria-label="Filter by category" class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 focus:outline-none">
+                                    <option value="ALL">All Categories</option>
+                                    <option value="Salary & Allowances">Salary & Allowances</option>
+                                    <option value="Mess Bill">Mess Bill</option>
+                                    <option value="Family & Utilities">Family & Utilities</option>
+                                    <option value="Vehicle & Fuel">Vehicle & Fuel</option>
+                                    <option value="Groceries">Groceries</option>
+                                    <option value="Savings / DPS">Savings / DPS</option>
+                                    <option value="Education & Courses">Education & Courses</option>
+                                    <option value="Miscellaneous">Miscellaneous</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Responsive Table Container -->
+                        <div class="overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                                        <th class="py-3 pr-3">Particulars</th>
+                                        <th class="py-3 px-2 hidden sm:table-cell">Category</th>
+                                        <th class="py-3 px-2 hidden md:table-cell">Date & Channel</th>
+                                        <th class="py-3 px-2 text-right">Amount</th>
+                                        <th class="py-3 pl-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transaction-table-body" class="divide-y divide-slate-100 dark:divide-slate-800/70 text-sm">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Table Footer Summary -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span id="filtered-tx-summary">Showing 0 transactions</span>
+                        <span id="filtered-tx-net" class="font-mono font-semibold text-slate-700 dark:text-slate-300">Filtered Net: ৳0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. BUDGET & CATEGORY LIMITS + 5. SAVINGS & FINANCIAL GOALS -->
+            <section id="planning-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Category Budget Limits -->
+                <div id="budgets-panel" class="lg:col-span-6 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Monthly Category Limits</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Tap any limit amount to customize • Amber ≥80%, Red ≥100%</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="budget-limits-container" class="space-y-4">
+                            <!-- Dynamically populated category budget cards -->
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                        <span>Tailored for Capt Toha's monthly expenses</span>
+                        <span class="font-mono text-emerald-500 font-semibold">Oct 2026 Cycle</span>
+                    </div>
+                </div>
+
+                <!-- Savings & Financial Goals Tracker -->
+                <div id="goals-panel" class="lg:col-span-6 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                                    <i data-lucide="target" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Savings & Financial Goals</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Long-term funds & milestone capital</p>
+                                </div>
+                            </div>
+                            <button onclick="openNewGoalModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 transition flex items-center gap-1.5">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                <span>New Goal</span>
+                            </button>
+                        </div>
+
+                        <div id="goals-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Dynamically populated savings goal cards -->
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                        <span id="goals-total-progress-label">Total Goal Progress: 0%</span>
+                        <span id="goals-total-saved-label" class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">Total Saved: ৳0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5.5 OPTION 3: NATIVE ANDROID SMS AUTO-SYNC & BD BANK PARSER -->
+            <section id="smssync-section" class="hidden space-y-6">
+                <!-- Top Status & Bridge Architecture Banner -->
+                <div class="bg-gradient-to-br from-slate-900 via-emerald-950 to-indigo-950 p-6 sm:p-7 rounded-3xl border border-emerald-500/30 text-white shadow-xl">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div class="space-y-2 max-w-2xl">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> Option 3: Native SMS Auto-Reader
+                                </span>
+                                <span id="native-bridge-indicator" class="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                    window.onNativeSmsReceived() Active
+                                </span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Bangladeshi Bank & MFS SMS Auto-Sync Engine</h2>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                Tailored for <strong>Capt Tanvir Ahmed Toha</strong>. Automatically parses debit & credit alerts from <strong>Trust Bank (TBL)</strong>, <strong>City Bank / AMEX</strong>, <strong>BRAC Bank</strong>, <strong>DBBL</strong>, <strong>Sonali/Islami Bank</strong>, <strong>bKash</strong>, and <strong>Nagad</strong>—extracting the exact amount, transaction type, category (Mess, Fuel/Civic, Pay/SFC, Groceries), and TrxID with duplicate protection.
+                            </p>
+                        </div>
+
+                        <!-- Auto-Approve Toggle Card -->
+                        <div class="bg-slate-900/90 border border-slate-700/80 p-4 rounded-2xl flex flex-col gap-3 min-w-[260px]">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-xs font-bold text-white">Auto-Approve Bank SMS</div>
+                                    <div class="text-[11px] text-slate-400">Save directly to ledger without prompt</div>
+                                </div>
+                                <button type="button" id="auto-approve-toggle-btn" onclick="toggleSmsAutoApprove()" class="w-12 h-6 rounded-full bg-emerald-500 p-0.5 transition-colors flex items-center">
+                                    <span id="auto-approve-knob" class="w-5 h-5 rounded-full bg-white shadow transform translate-x-6 transition-transform"></span>
+                                </button>
+                            </div>
+                            <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                                <span id="sms-processed-count">Synced SMS: 0</span>
+                                <span id="sms-pending-count" class="text-amber-400">Pending Queue: 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Simulator + Live SMS Parser Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: Live SMS Paste & 1-Tap Simulator -->
+                    <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                                    <i data-lucide="terminal" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Live SMS Parser & 1-Tap Simulator</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Test real BD Bank / MFS alerts or paste an SMS from your clipboard</p>
+                                </div>
+                            </div>
+                            <button onclick="pasteClipboardToSmsBox()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-emerald-500/10 text-slate-700 dark:text-slate-200 hover:text-emerald-500 border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5">
+                                <i data-lucide="clipboard-paste" class="w-3.5 h-3.5"></i>
+                                <span>Paste Clipboard</span>
+                            </button>
+                        </div>
+
+                        <!-- 1-Tap Sample SMS Simulator Buttons -->
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Tap a Realistic BD SMS Preset to Simulate Incoming Alert:</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <button type="button" onclick="loadSampleSms('trust_salary')" class="p-2.5 rounded-xl bg-emerald-500/5 hover:bg-emerald-500/15 border border-emerald-500/20 text-left transition flex items-center justify-between group">
+                                    <div>
+                                        <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400">1. Trust Bank Salary Credit</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">SFC Army Pay & Allowances (+৳84,500)</div>
+                                    </div>
+                                    <i data-lucide="zap" class="w-4 h-4 text-emerald-500 opacity-60 group-hover:opacity-100"></i>
+                                </button>
+
+                                <button type="button" onclick="loadSampleSms('bkash_cashout')" class="p-2.5 rounded-xl bg-rose-500/5 hover:bg-rose-500/15 border border-rose-500/20 text-left transition flex items-center justify-between group">
+                                    <div>
+                                        <div class="text-xs font-bold text-rose-600 dark:text-rose-400">2. bKash Cash Out / Send Money</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Family Remittance (-৳5,500)</div>
+                                    </div>
+                                    <i data-lucide="zap" class="w-4 h-4 text-rose-500 opacity-60 group-hover:opacity-100"></i>
+                                </button>
+
+                                <button type="button" onclick="loadSampleSms('city_fuel')" class="p-2.5 rounded-xl bg-blue-500/5 hover:bg-blue-500/15 border border-blue-500/20 text-left transition flex items-center justify-between group">
+                                    <div>
+                                        <div class="text-xs font-bold text-blue-600 dark:text-blue-400">3. City Bank Card POS Fuel</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Filling Station Octane (-৳3,850)</div>
+                                    </div>
+                                    <i data-lucide="zap" class="w-4 h-4 text-blue-500 opacity-60 group-hover:opacity-100"></i>
+                                </button>
+
+                                <button type="button" onclick="loadSampleSms('nagad_mess')" class="p-2.5 rounded-xl bg-amber-500/5 hover:bg-amber-500/15 border border-amber-500/20 text-left transition flex items-center justify-between group">
+                                    <div>
+                                        <div class="text-xs font-bold text-amber-600 dark:text-amber-400">4. Nagad / Trust Mess Bill</div>
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400">Officers' Mess Bill (-৳6,200)</div>
+                                    </div>
+                                    <i data-lucide="zap" class="w-4 h-4 text-amber-500 opacity-60 group-hover:opacity-100"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Sender & Raw SMS Body Inputs -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label for="sms-sender-input" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">SMS Sender ID</label>
+                                <input type="text" id="sms-sender-input" value="TrustBank" placeholder="e.g., TrustBank, bKash, 16247" oninput="updateLiveSmsPreview()" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="sms-body-input" class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Raw SMS Message Text</label>
+                                <textarea id="sms-body-input" rows="3" oninput="updateLiveSmsPreview()" placeholder="Paste any bank or MFS debit/credit SMS here (e.g., Your A/C **4821 debited BDT 3,500.00 at CSD Mart...)" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Live Regex Extraction Preview Box -->
+                        <div id="sms-live-preview-box" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/80 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold uppercase tracking-wider text-slate-400">Live Regex Extraction Preview</span>
+                                <span id="preview-confidence-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Waiting for SMS...</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                                    <div class="text-[10px] text-slate-400">Detected Type</div>
+                                    <div id="preview-tx-type" class="font-bold text-slate-800 dark:text-slate-200 mt-0.5">—</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                                    <div class="text-[10px] text-slate-400">Amount (BDT)</div>
+                                    <div id="preview-tx-amount" class="font-bold font-mono text-slate-800 dark:text-slate-200 mt-0.5">৳0</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                                    <div class="text-[10px] text-slate-400">Auto-Category</div>
+                                    <div id="preview-tx-category" class="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">—</div>
+                                </div>
+                                <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                                    <div class="text-[10px] text-slate-400">Channel / TrxID</div>
+                                    <div id="preview-tx-ref" class="font-mono font-semibold text-slate-700 dark:text-slate-300 mt-0.5 truncate">—</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button type="button" onclick="triggerSimulatedNativeSms()" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                                <i data-lucide="radio" class="w-4 h-4"></i>
+                                <span>Simulate Native Incoming SMS Broadcast</span>
+                            </button>
+                            <button type="button" onclick="clearSmsInputBox()" class="py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-xs transition">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Pending SMS Queue & Auto-Captured Log -->
+                    <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                                        <i data-lucide="inbox" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-slate-900 dark:text-white">SMS Sync Feed & Review Queue</h3>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Deduplicated bank/MFS messages</p>
+                                    </div>
+                                </div>
+                                <button onclick="clearSmsLogHistory()" class="text-xs text-slate-400 hover:text-rose-500 transition">Clear Log</button>
+                            </div>
+
+                            <!-- Pending Approval Queue (When Auto-Approve is OFF) -->
+                            <div id="sms-pending-queue-wrapper" class="hidden mb-4">
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-500 mb-2 flex items-center gap-1.5">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i> Pending Your Approval
+                                </div>
+                                <div id="sms-pending-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+                            </div>
+
+                            <!-- Processed SMS History List -->
+                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Recent Auto-Parsed SMS Alerts</div>
+                            <div id="sms-history-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                            <span>Duplicate TrxID protection enabled</span>
+                            <span class="font-mono text-emerald-500">UTF-8 / BDT Regex v3.2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step-by-Step Native Android APK & Automation Blueprint -->
+                <div class="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
+                                <i data-lucide="code-2" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Option 3 Blueprint: Connect Real Phone SMS to Capt Toha's App</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Choose Method A (Zero-Code 2-Min Setup via MacroDroid) or Method B (Full Native Android Studio `.APK` with `READ_SMS` & `RECEIVE_SMS`)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Method A: MacroDroid / Tasker Zero-Build Deep Link -->
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Method A • Fastest (No PC Required)</span>
+                                <span class="text-xs font-mono text-slate-400">2 Mins Setup</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Automatic SMS Forwarding via MacroDroid / Shortcuts</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                This app has a built-in <strong>URL Deep-Link Listener</strong> (<code>?sms=...&sender=...</code>). You can make your phone automatically forward every incoming bank SMS straight into the app:
+                            </p>
+                            <ol class="text-xs text-slate-600 dark:text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                                <li>Install <strong>MacroDroid</strong> (Android) or open <strong>Shortcuts</strong> (iPhone).</li>
+                                <li><strong>Trigger:</strong> <em>SMS Received</em> from Senders: <code>TrustBank, bKash, Nagad, 16216, 16247, BRACBANK, DBBL</code> (or Content contains <code>BDT</code> / <code>Tk</code>).</li>
+                                <li><strong>Action:</strong> <em>Open Website / URL</em> and paste your app's URL with dynamic SMS variables:</li>
+                            </ol>
+                            <div class="p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto flex items-center justify-between gap-2">
+                                <code id="deep-link-template">https://your-app-url.netlify.app/?sender={sms_number}&sms={sms_message}</code>
+                                <button onclick="copyCodeSnippet('deep-link-template')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white text-[10px] flex-shrink-0">Copy</button>
+                            </div>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                Every time an SMS arrives, the app opens, parses the amount & category, saves it to your ledger, and cleans the URL bar automatically!
+                            </p>
+                        </div>
+
+                        <!-- Method B: Android Restricted Settings Note -->
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">Method B • Native Android Studio APK</span>
+                                <span class="text-xs font-mono text-slate-400">READ_SMS + RECEIVE_SMS</span>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white">How to Enable "Restricted SMS Permissions" on Android 13/14/15</h4>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                When you compile this file into a native Android `.APK` using the Kotlin `BroadcastReceiver` below, Android blocks `READ_SMS` by default on sideloaded APKs until you unlock it once:
+                            </p>
+                            <ol class="text-xs text-slate-600 dark:text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                                <li>Install your compiled <strong>Capt Toha Finance.apk</strong> on your Android phone.</li>
+                                <li>Open phone <strong>Settings → Apps → Capt Toha Finance</strong>.</li>
+                                <li>Tap the <strong>3-dot menu (⋮)</strong> in the top-right corner of the App Info screen and tap <strong>"Allow restricted settings"</strong> (verify with your fingerprint/PIN).</li>
+                                <li>Now go to <strong>Permissions → SMS → Allow</strong>. Your app will now silently intercept all incoming bank & bKash SMS alerts in real time!</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- Copy-Pasteable Android Manifest & Kotlin BroadcastReceiver Code -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold font-mono text-slate-700 dark:text-slate-300">1. AndroidManifest.xml (Permissions & Receiver)</span>
+                                <button onclick="copyCodeSnippet('manifest-code-block')" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy XML
+                                </button>
+                            </div>
+                            <pre id="manifest-code-block" class="p-3.5 rounded-2xl bg-slate-950 text-slate-200 font-mono text-[11px] overflow-x-auto leading-relaxed border border-slate-800">&lt;!-- Add inside AndroidManifest.xml --&gt;
+&lt;uses-permission android:name="android.permission.RECEIVE_SMS" /&gt;
+&lt;uses-permission android:name="android.permission.READ_SMS" /&gt;
+&lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+
+&lt;application ...&gt;
+    &lt;receiver
+        android:name=".SmsReceiver"
+        android:exported="true"
+        android:permission="android.permission.BROADCAST_SMS"&gt;
+        &lt;intent-filter android:priority="999"&gt;
+            &lt;action android:name="android.provider.Telephony.SMS_RECEIVED" /&gt;
+        &lt;/intent-filter&gt;
+    &lt;/receiver&gt;
+&lt;/application&gt;</pre>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold font-mono text-slate-700 dark:text-slate-300">2. SmsReceiver.kt (Kotlin Bridge to WebView)</span>
+                                <button onclick="copyCodeSnippet('kotlin-code-block')" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Kotlin
+                                </button>
+                            </div>
+                            <pre id="kotlin-code-block" class="p-3.5 rounded-2xl bg-slate-950 text-emerald-300 font-mono text-[11px] overflow-x-auto leading-relaxed border border-slate-800">package com.capttoha.finance
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.provider.Telephony
+import android.webkit.WebView
+import org.json.JSONObject
+
+class SmsReceiver : BroadcastReceiver() {
+    companion object { var webViewRef: WebView? = null }
+
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
+            val msgs = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+            val sender = msgs.firstOrNull()?.originatingAddress ?: "BankSMS"
+            val fullBody = msgs.joinToString("") { it.messageBody ?: "" }
+            val safeSender = JSONObject.quote(sender)
+            val safeBody = JSONObject.quote(fullBody)
+
+            webViewRef?.post {
+                webViewRef?.evaluateJavascript(
+                    "window.onNativeSmsReceived($safeSender, $safeBody, Date.now());",
+                    null
+                )
+            }
+        }
+    }
+}</pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. INSTALL AS MOBILE APP & DATA BACKUP SECTION -->
+            <section id="appguide-section" class="hidden space-y-6">
+                <!-- How to Use on Mobile Phone Banner -->
+                <div class="bg-gradient-to-br from-emerald-950 via-slate-900 to-indigo-950 p-6 sm:p-8 rounded-3xl border border-emerald-500/30 text-white shadow-xl">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div class="space-y-2 max-w-2xl">
+                            <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                <i data-lucide="smartphone" class="w-3.5 h-3.5"></i> Ready for Android & iPhone
+                            </span>
+                            <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">How to Install Capt Toha's Finance App on Your Phone</h2>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                This app is built as a standalone <strong>Progressive Web App (PWA)</strong>. You can install it directly onto your phone's home screen with your <strong>"TT" icon</strong>, full-screen view, and 100% offline storage—or turn it into an Android <code>.APK</code> file in 60 seconds.
+                            </p>
+                        </div>
+                        <button id="native-pwa-install-btn" onclick="triggerNativeInstall()" class="hidden px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-xl shadow-emerald-500/20 transition items-center gap-2 flex-shrink-0">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                            <span>Install App Now</span>
+                        </button>
+                    </div>
+
+                    <!-- 3 Installation Options Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                        <!-- Option 1: Android Chrome -->
+                        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+                                    <i data-lucide="smartphone" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">1. Android (Instant App)</h3>
+                                    <p class="text-[11px] text-slate-400">Via Google Chrome / Edge</p>
+                                </div>
+                            </div>
+                            <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                                <li>Host this file free on <strong>Netlify Drop</strong> (app.netlify.com/drop) or open it in Chrome on your phone.</li>
+                                <li>Tap the <strong>3-dot menu (⋮)</strong> at the top-right of Chrome.</li>
+                                <li>Tap <strong>"Add to Home screen"</strong> or <strong>"Install App"</strong>.</li>
+                                <li>It will appear on your phone launcher titled <strong>"Capt Toha Finance"</strong> with no browser bar!</li>
+                            </ol>
+                        </div>
+
+                        <!-- Option 2: iPhone Safari -->
+                        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400">
+                                    <i data-lucide="apple" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">2. iPhone / iPad (iOS)</h3>
+                                    <p class="text-[11px] text-slate-400">Via Safari Browser</p>
+                                </div>
+                            </div>
+                            <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                                <li>Open your hosted app link in <strong>Safari</strong> on your iPhone.</li>
+                                <li>Tap the <strong>Share icon</strong> (square with upward arrow) at the bottom bar.</li>
+                                <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
+                                <li>Tap <strong>Add</strong> in the top corner. Launch it anytime like a native iOS app!</li>
+                            </ol>
+                        </div>
+
+                        <!-- Option 3: Native Android APK -->
+                        <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+                                    <i data-lucide="package-check" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white">3. Build Android .APK File</h3>
+                                    <p class="text-[11px] text-slate-400">Installable offline package</p>
+                                </div>
+                            </div>
+                            <ol class="text-xs text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                                <li>Save this code as <code>index.html</code> on your computer or phone.</li>
+                                <li>Go to <strong>webintoapp.com</strong> or <strong>appsgeyser.com</strong> (free HTML-to-APK converters).</li>
+                                <li>Upload <code>index.html</code>, set App Name to <strong>"Capt Toha Finance"</strong>, and click Build APK.</li>
+                                <li>Download and install the <code>.apk</code> directly on your Android phone!</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portable Data Backup & Restore Center -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500">
+                            <i data-lucide="database-backup" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Portable Backup & Sync (Phone ↔ PC)</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">All your records are saved privately on your device. Export a backup file anytime to transfer between devices.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+                        <button onclick="exportBackupJSON()" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-emerald-500/10 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 transition text-left group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Full JSON Backup</span>
+                                <i data-lucide="download-cloud" class="w-4 h-4 text-emerald-500"></i>
+                            </div>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">Download Backup File</div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Saves all transactions, budgets & goals into a portable <code>.json</code> file.</p>
+                        </button>
+
+                        <label class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-indigo-500/10 border border-slate-200 dark:border-slate-700 hover:border-indigo-500/40 transition text-left cursor-pointer group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Restore Data</span>
+                                <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-500"></i>
+                            </div>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">Import Backup File</div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Restore a previously saved <code>.json</code> backup file from your phone or PC.</p>
+                            <input type="file" accept=".json" onchange="importBackupJSON(event)" class="hidden">
+                        </label>
+
+                        <button onclick="exportToCSV()" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 hover:bg-amber-500/10 border border-slate-200 dark:border-slate-700 hover:border-amber-500/40 transition text-left group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">Excel / Spreadsheet</span>
+                                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-500"></i>
+                            </div>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mb-1">Export Ledger as CSV</div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Download a spreadsheet-compatible CSV file of all your transactions.</p>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 py-5 px-4 sm:px-8 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-700 dark:text-slate-300">Capt Tanvir Ahmed Toha — Personal Finance</span>
+                <span>•</span>
+                <span>100% Offline-Ready Local Storage</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="resetSampleDataPrompt()" class="hover:text-emerald-500 transition">Restore Default Data</button>
+                <span>•</span>
+                <button onclick="exportBackupJSON()" class="hover:text-emerald-500 transition">Backup JSON</button>
+                <span>•</span>
+                <button onclick="exportToCSV()" class="hover:text-emerald-500 transition">Export CSV</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Mobile Floating Action Button (Quick Add Transaction) -->
+    <button onclick="openQuickAddTransaction()" aria-label="Quick Add Transaction" class="lg:hidden fixed right-4 bottom-20 z-30 w-13 h-13 p-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white shadow-xl shadow-emerald-600/30 border border-emerald-400/30 flex items-center justify-center transition">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Mobile Bottom Navigation Bar (App-style) -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-1.5 py-1.5 grid grid-cols-5 gap-1">
+        <button onclick="switchTab('dashboard')" data-mobile-tab="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-emerald-600 dark:text-emerald-400 font-semibold transition">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
+            <span class="text-[10px]">Home</span>
+        </button>
+        <button onclick="switchTab('transactions')" data-mobile-tab="transactions" class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 dark:text-slate-400 font-medium transition">
+            <i data-lucide="arrow-left-right" class="w-4 h-4 mb-0.5"></i>
+            <span class="text-[10px]">Ledger</span>
+        </button>
+        <button onclick="switchTab('smssync')" data-mobile-tab="smssync" class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 dark:text-slate-400 font-medium transition relative">
+            <i data-lucide="message-square-plus" class="w-4 h-4 mb-0.5 text-emerald-500"></i>
+            <span class="text-[10px]">SMS Sync</span>
+        </button>
+        <button onclick="switchTab('budgets')" data-mobile-tab="budgets" class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 dark:text-slate-400 font-medium transition">
+            <i data-lucide="target" class="w-4 h-4 mb-0.5"></i>
+            <span class="text-[10px]">Budgets</span>
+        </button>
+        <button onclick="switchTab('appguide')" data-mobile-tab="appguide" class="mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 dark:text-slate-400 font-medium transition">
+            <i data-lucide="smartphone" class="w-4 h-4 mb-0.5"></i>
+            <span class="text-[10px]">APK/Sync</span>
+        </button>
+    </nav>
+
+    <!-- Application JavaScript -->
+    <script>
+        // ==========================================
+        // 1. CONSTANTS, CURRENCY & CAPT TOHA'S DEFAULT DATA
+        // ==========================================
+        const STORAGE_KEY = 'capt_tanvir_toha_finance_v3';
+        const ACTIVE_MONTH_PREFIX = '2026-10'; // Current month: October 2026
+
+        // Base amounts stored in BDT (৳) for accuracy
+        const CURRENCIES = {
+            BDT: { symbol: '৳', code: 'BDT', rate: 1, decimals: 0 },
+            USD: { symbol: '$', code: 'USD', rate: 1 / 120, decimals: 2 },
+            EUR: { symbol: '€', code: 'EUR', rate: 1 / 130, decimals: 2 }
+        };
+
+        const CATEGORY_META = {
+            'Salary & Allowances': { color: '#10b981', bg: 'bg-emerald-500/10', text: 'text-emerald-500', icon: 'award' },
+            'Mess Bill':           { color: '#f59e0b', bg: 'bg-amber-500/10',   text: 'text-amber-500',   icon: 'utensils' },
+            'Family & Utilities':  { color: '#8b5cf6', bg: 'bg-purple-500/10',  text: 'text-purple-500',  icon: 'home' },
+            'Vehicle & Fuel':      { color: '#3b82f6', bg: 'bg-blue-500/10',    text: 'text-blue-500',    icon: 'fuel' },
+            'Groceries':           { color: '#ec4899', bg: 'bg-pink-500/10',    text: 'text-pink-500',    icon: 'shopping-bag' },
+            'Savings / DPS':       { color: '#6366f1', bg: 'bg-indigo-500/10',  text: 'text-indigo-500',  icon: 'piggy-bank' },
+            'Education & Courses': { color: '#14b8a6', bg: 'bg-teal-500/10',    text: 'text-teal-500',    icon: 'book-open' },
+            'Miscellaneous':       { color: '#64748b', bg: 'bg-slate-500/10',   text: 'text-slate-400',   icon: 'layers' }
+        };
+
+        // Pre-populated realistic sample data tailored for Capt Tanvir Ahmed Toha (Base BDT)
+        function getDefaultState() {
+            return {
+                owner: 'Capt Tanvir Ahmed Toha',
+                unit: 'Corps of EME, Bangladesh Army',
+                currency: 'BDT',
+                theme: 'dark',
+                smsAutoApprove: true,
+                processedSmsHashes: ['TRX-INIT-991', 'TRX-INIT-992'],
+                pendingSmsQueue: [],
+                smsHistoryLog: [
+                    {
+                        id: 'sms-init-1',
+                        sender: 'TrustBank',
+                        body: 'Your A/C **4821 has been credited with BDT 84,000.00 on 01-Oct-2026 by SFC ARMY PAY ALLOWANCE. Avl Bal: BDT 1,42,500.00. Ref: TRX-INIT-991',
+                        parsedType: 'Income',
+                        amount: 84000,
+                        category: 'Salary & Allowances',
+                        channel: 'Trust Bank / Bank Transfer',
+                        trxId: 'TRX-INIT-991',
+                        timestamp: '2026-10-01 09:15'
+                    },
+                    {
+                        id: 'sms-init-2',
+                        sender: 'bKash',
+                        body: 'Cash Out Tk 4,100.00 to 01711****89 successful. Fee Tk 0.00. Balance Tk 18,400.00. TrxID TRX-INIT-992 at 12/10/2026 18:40',
+                        parsedType: 'Expense',
+                        amount: 4100,
+                        category: 'Vehicle & Fuel',
+                        channel: 'bKash / Nagad',
+                        trxId: 'TRX-INIT-992',
+                        timestamp: '2026-10-12 18:40'
+                    }
+                ],
+                budgets: {
+                    'Mess Bill': 7000,
+                    'Family & Utilities': 20000,
+                    'Vehicle & Fuel': 6000,
+                    'Groceries': 8500,
+                    'Savings / DPS': 18000,
+                    'Education & Courses': 4000,
+                    'Miscellaneous': 5000
+                },
+                goals: [
+                    {
+                        id: 'goal-1',
+                        title: 'Emergency Command Reserve',
+                        targetAmount: 350000,
+                        savedAmount: 230000,
+                        category: 'Safety Net (6M)',
+                        icon: 'shield'
+                    },
+                    {
+                        id: 'goal-2',
+                        title: 'Vehicle / Car Upgrade Fund',
+                        targetAmount: 450000,
+                        savedAmount: 195000,
+                        category: 'Transport Milestone',
+                        icon: 'car'
+                    },
+                    {
+                        id: 'goal-3',
+                        title: 'Trust Bank DPS & Sanchaypatra',
+                        targetAmount: 600000,
+                        savedAmount: 380000,
+                        category: 'Long-Term Wealth',
+                        icon: 'landmark'
+                    },
+                    {
+                        id: 'goal-4',
+                        title: 'Family Welfare & Future Fund',
+                        targetAmount: 500000,
+                        savedAmount: 265000,
+                        category: 'Family Priority',
+                        icon: 'heart-handshake'
+                    }
+                ],
+                transactions: [
+                    // October 2026 (Current Month)
+                    { id: 'tx-101', title: 'Monthly Officer Pay & Allowances', amount: 84000, type: 'Income', category: 'Salary & Allowances', date: '2026-10-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-102', title: 'Officers\' Mess Bill & Subscription', amount: 5600, type: 'Expense', category: 'Mess Bill', date: '2026-10-03', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-103', title: 'Family Home Remittance & Utilities', amount: 16500, type: 'Expense', category: 'Family & Utilities', date: '2026-10-05', method: 'bKash / Nagad' },
+                    { id: 'tx-104', title: 'Trust Bank Monthly DPS Installment', amount: 15000, type: 'Investment', category: 'Savings / DPS', date: '2026-10-06', method: 'Standing Instruction / Auto' },
+                    { id: 'tx-105', title: 'CSD / Fresh Bazar Groceries', amount: 5200, type: 'Expense', category: 'Groceries', date: '2026-10-09', method: 'Debit / Credit Card' },
+                    { id: 'tx-106', title: 'Octane Refill & Vehicle Maintenance', amount: 4100, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-10-12', method: 'bKash / Nagad' },
+                    { id: 'tx-107', title: 'Special Duty / Training Allowance', amount: 12000, type: 'Income', category: 'Salary & Allowances', date: '2026-10-14', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-108', title: 'Professional Course & Books', amount: 2400, type: 'Expense', category: 'Education & Courses', date: '2026-10-16', method: 'Debit / Credit Card' },
+                    { id: 'tx-109', title: 'Emergency Reserve Top-Up', amount: 5000, type: 'Investment', category: 'Savings / DPS', date: '2026-10-18', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-110', title: 'Regimental Gift & Miscellaneous', amount: 2150, type: 'Expense', category: 'Miscellaneous', date: '2026-10-19', method: 'Cash' },
+
+                    // September 2026
+                    { id: 'tx-091', title: 'Monthly Officer Pay & Allowances', amount: 84000, type: 'Income', category: 'Salary & Allowances', date: '2026-09-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-092', title: 'Family Support & Home Utilities', amount: 17000, type: 'Expense', category: 'Family & Utilities', date: '2026-09-04', method: 'bKash / Nagad' },
+                    { id: 'tx-093', title: 'Officers\' Mess Bill', amount: 5800, type: 'Expense', category: 'Mess Bill', date: '2026-09-05', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-094', title: 'CSD Groceries & Essentials', amount: 7200, type: 'Expense', category: 'Groceries', date: '2026-09-11', method: 'Debit / Credit Card' },
+                    { id: 'tx-095', title: 'Vehicle Fuel & Servicing', amount: 4900, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-09-15', method: 'bKash / Nagad' },
+                    { id: 'tx-096', title: 'Monthly DPS Deposit', amount: 18000, type: 'Investment', category: 'Savings / DPS', date: '2026-09-07', method: 'Standing Instruction / Auto' },
+
+                    // August 2026
+                    { id: 'tx-081', title: 'Monthly Officer Pay & Allowances', amount: 84000, type: 'Income', category: 'Salary & Allowances', date: '2026-08-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-082', title: 'Family & Utilities', amount: 16500, type: 'Expense', category: 'Family & Utilities', date: '2026-08-05', method: 'bKash / Nagad' },
+                    { id: 'tx-083', title: 'Mess & CSD Groceries', amount: 12100, type: 'Expense', category: 'Groceries', date: '2026-08-10', method: 'Cash' },
+                    { id: 'tx-084', title: 'Fuel & Highway Commute', amount: 4400, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-08-14', method: 'Cash' },
+                    { id: 'tx-085', title: 'Trust Bank DPS Installment', amount: 18000, type: 'Investment', category: 'Savings / DPS', date: '2026-08-06', method: 'Standing Instruction / Auto' },
+
+                    // July 2026
+                    { id: 'tx-071', title: 'Monthly Pay + Festival Bonus', amount: 105000, type: 'Income', category: 'Salary & Allowances', date: '2026-07-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-072', title: 'Family Festival Support & Utilities', amount: 24000, type: 'Expense', category: 'Family & Utilities', date: '2026-07-08', method: 'Debit / Credit Card' },
+                    { id: 'tx-073', title: 'Mess Bill & Groceries', amount: 12600, type: 'Expense', category: 'Mess Bill', date: '2026-07-12', method: 'Cash' },
+                    { id: 'tx-074', title: 'Vehicle Fuel & Care', amount: 5200, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-07-18', method: 'bKash / Nagad' },
+                    { id: 'tx-075', title: 'DPS + Extra Fund Allocation', amount: 25000, type: 'Investment', category: 'Savings / DPS', date: '2026-07-07', method: 'Trust Bank / Bank Transfer' },
+
+                    // June 2026
+                    { id: 'tx-061', title: 'Monthly Officer Pay & Allowances', amount: 82000, type: 'Income', category: 'Salary & Allowances', date: '2026-06-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-062', title: 'Family & Utilities', amount: 15800, type: 'Expense', category: 'Family & Utilities', date: '2026-06-05', method: 'bKash / Nagad' },
+                    { id: 'tx-063', title: 'Mess Bill & CSD Groceries', amount: 11500, type: 'Expense', category: 'Groceries', date: '2026-06-11', method: 'Cash' },
+                    { id: 'tx-064', title: 'Fuel & Miscellaneous', amount: 5900, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-06-19', method: 'Cash' },
+                    { id: 'tx-065', title: 'Monthly DPS Installment', amount: 16000, type: 'Investment', category: 'Savings / DPS', date: '2026-06-06', method: 'Standing Instruction / Auto' },
+
+                    // May 2026
+                    { id: 'tx-051', title: 'Monthly Officer Pay & Allowances', amount: 82000, type: 'Income', category: 'Salary & Allowances', date: '2026-05-01', method: 'Trust Bank / Bank Transfer' },
+                    { id: 'tx-052', title: 'Family & Utilities', amount: 15500, type: 'Expense', category: 'Family & Utilities', date: '2026-05-04', method: 'bKash / Nagad' },
+                    { id: 'tx-053', title: 'Mess Bill & Groceries', amount: 11800, type: 'Expense', category: 'Mess Bill', date: '2026-05-09', method: 'Cash' },
+                    { id: 'tx-054', title: 'Vehicle Fuel', amount: 4500, type: 'Expense', category: 'Vehicle & Fuel', date: '2026-05-16', method: 'Cash' },
+                    { id: 'tx-055', title: 'Monthly DPS Installment', amount: 16000, type: 'Investment', category: 'Savings / DPS', date: '2026-05-06', method: 'Standing Instruction / Auto' }
+                ]
+            };
+        }
+
+        // Application State
+        let state = loadState();
+        let activeTab = 'dashboard';
+        let deferredInstallPrompt = null;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && Array.isArray(parsed.transactions) && parsed.budgets && Array.isArray(parsed.goals)) {
+                        if (typeof parsed.smsAutoApprove !== 'boolean') parsed.smsAutoApprove = true;
+                        if (!Array.isArray(parsed.processedSmsHashes)) parsed.processedSmsHashes = [];
+                        if (!Array.isArray(parsed.pendingSmsQueue)) parsed.pendingSmsQueue = [];
+                        if (!Array.isArray(parsed.smsHistoryLog)) parsed.smsHistoryLog = [];
+                        return parsed;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load state from localStorage:', err);
+            }
+            return getDefaultState();
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (err) {
+                console.error('Failed to save state to localStorage:', err);
+            }
+        }
+
+        // ==========================================
+        // 2. PWA MANIFEST & INSTALL SETUP
+        // ==========================================
+        function setupPWA() {
+            const manifestObj = {
+                name: "Capt Tanvir Ahmed Toha — Personal Finance",
+                short_name: "Capt Toha Finance",
+                description: "Personal Financial Management & Ledger for Capt Tanvir Ahmed Toha",
+                start_url: "./",
+                display: "standalone",
+                background_color: "#090d16",
+                theme_color: "#10b981",
+                icons: [
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='28' fill='%2310b981'/%3E%3Ctext x='60' y='74' font-family='sans-serif' font-size='44' font-weight='bold' fill='white' text-anchor='middle'%3ETT%3C/text%3E%3C/svg%3E",
+                        sizes: "192x192",
+                        type: "image/svg+xml"
+                    },
+                    {
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='110' fill='%2310b981'/%3E%3Ctext x='256' y='315' font-family='sans-serif' font-size='190' font-weight='bold' fill='white' text-anchor='middle'%3ETT%3C/text%3E%3C/svg%3E",
+                        sizes: "512x512",
+                        type: "image/svg+xml"
+                    }
+                ]
+            };
+
+            try {
+                const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+                const manifestURL = URL.createObjectURL(blob);
+                document.getElementById('pwa-manifest').setAttribute('href', manifestURL);
+            } catch (e) {
+                console.warn('PWA manifest setup skipped:', e);
+            }
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                const btn = document.getElementById('native-pwa-install-btn');
+                if (btn) {
+                    btn.classList.remove('hidden');
+                    btn.classList.add('flex');
+                }
+            });
+        }
+
+        async function triggerNativeInstall() {
+            if (!deferredInstallPrompt) {
+                showToast('Use your mobile browser menu -> "Add to Home Screen" to install.', 'indigo');
+                return;
+            }
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('App installed on your device!', 'emerald');
+            }
+            deferredInstallPrompt = null;
+        }
+
+        // ==========================================
+        // 3. CURRENCY CONVERSION & FORMATTING
+        // ==========================================
+        function getCurrencyMeta() {
+            return CURRENCIES[state.currency] || CURRENCIES.BDT;
+        }
+
+        function formatMoney(bdtAmount, showDecimalsOverride = null) {
+            const meta = getCurrencyMeta();
+            const converted = (Number(bdtAmount) || 0) * meta.rate;
+            const decimals = showDecimalsOverride !== null ? showDecimalsOverride : meta.decimals;
+            const absVal = Math.abs(converted);
+            const formatted = absVal.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+            return (converted < 0 ? '-' : '') + meta.symbol + formatted;
+        }
+
+        function toBaseBDT(inputAmountInActiveCurrency) {
+            const meta = getCurrencyMeta();
+            return (Number(inputAmountInActiveCurrency) || 0) / meta.rate;
+        }
+
+        function fromBaseBDT(bdtAmount) {
+            const meta = getCurrencyMeta();
+            const val = (Number(bdtAmount) || 0) * meta.rate;
+            return meta.decimals === 0 ? Math.round(val) : Number(val.toFixed(2));
+        }
+
+        function changeCurrency(newCurrency) {
+            if (!CURRENCIES[newCurrency]) return;
+            state.currency = newCurrency;
+            saveState();
+            renderAll();
+            showToast(`Currency switched to ${newCurrency} (${CURRENCIES[newCurrency].symbol})`, 'indigo');
+        }
+
+        // ==========================================
+        // 4. UI HELPERS: TOASTS, MODALS, TABS, THEME
+        // ==========================================
+        function showToast(message, variant = 'emerald') {
+            const container = document.getElementById('toast-container');
+            const colorMap = {
+                emerald: 'bg-emerald-600 border-emerald-500 text-white',
+                rose: 'bg-rose-600 border-rose-500 text-white',
+                indigo: 'bg-indigo-600 border-indigo-500 text-white',
+                amber: 'bg-amber-500 border-amber-400 text-slate-950'
+            };
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto flex items-center justify-between gap-3 px-4 py-3 rounded-xl border shadow-xl text-xs sm:text-sm font-medium transition-all duration-300 transform -translate-y-2 opacity-0 ${colorMap[variant] || colorMap.emerald}`;
+            toast.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()" class="opacity-80 hover:opacity-100 font-bold">✕</button>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-2', 'opacity-0');
+            });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        }
+
+        function openModal({ title, bodyHTML, confirmText = 'Confirm', confirmVariant = 'emerald', onConfirm }) {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').innerHTML = bodyHTML;
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            confirmBtn.textContent = confirmText;
+
+            const btnColors = {
+                indigo: 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20',
+                emerald: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20',
+                rose: 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-500/20'
+            };
+            confirmBtn.className = `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-lg transition ${btnColors[confirmVariant] || btnColors.emerald}`;
+
+            confirmBtn.onclick = () => {
+                if (onConfirm) {
+                    const shouldClose = onConfirm();
+                    if (shouldClose !== false) closeModal();
+                } else {
+                    closeModal();
+                }
+            };
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            state.theme = isDark ? 'dark' : 'light';
+            saveState();
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('theme-icon');
+            if (!icon) return;
+            const isDark = document.documentElement.classList.contains('dark');
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+
+            // Update Desktop Sidebar Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isTarget = btn.getAttribute('data-tab') === tab;
+                if (isTarget) {
+                    btn.className = 'nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg shadow-emerald-600/25';
+                } else {
+                    btn.className = 'nav-btn flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition-all';
+                }
+            });
+
+            // Update Mobile Bottom Nav Buttons
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                const isTarget = btn.getAttribute('data-mobile-tab') === tab;
+                if (isTarget) {
+                    btn.className = 'mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 transition';
+                } else {
+                    btn.className = 'mobile-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-slate-500 dark:text-slate-400 font-medium transition';
+                }
+            });
+
+            const welcomeBanner = document.getElementById('welcome-banner');
+            const kpiSec = document.getElementById('kpi-section');
+            const chartsSec = document.getElementById('charts-section');
+            const txSec = document.getElementById('transactions-section');
+            const planSec = document.getElementById('planning-section');
+            const smsSyncSec = document.getElementById('smssync-section');
+            const appGuideSec = document.getElementById('appguide-section');
+
+            // Reset all sections
+            welcomeBanner.classList.remove('hidden');
+            kpiSec.classList.remove('hidden');
+            chartsSec.classList.remove('hidden');
+            txSec.classList.remove('hidden');
+            planSec.classList.remove('hidden');
+            if (smsSyncSec) smsSyncSec.classList.add('hidden');
+            appGuideSec.classList.add('hidden');
+
+            if (tab === 'dashboard') {
+                // Show full overview
+            } else if (tab === 'transactions') {
+                welcomeBanner.classList.add('hidden');
+                chartsSec.classList.add('hidden');
+                planSec.classList.add('hidden');
+            } else if (tab === 'smssync') {
+                welcomeBanner.classList.add('hidden');
+                kpiSec.classList.add('hidden');
+                chartsSec.classList.add('hidden');
+                txSec.classList.add('hidden');
+                planSec.classList.add('hidden');
+                if (smsSyncSec) smsSyncSec.classList.remove('hidden');
+            } else if (tab === 'budgets') {
+                welcomeBanner.classList.add('hidden');
+                chartsSec.classList.add('hidden');
+                txSec.classList.add('hidden');
+            } else if (tab === 'appguide') {
+                welcomeBanner.classList.add('hidden');
+                kpiSec.classList.add('hidden');
+                chartsSec.classList.add('hidden');
+                txSec.classList.add('hidden');
+                planSec.classList.add('hidden');
+                appGuideSec.classList.remove('hidden');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openQuickAddTransaction() {
+            switchTab('transactions');
+            const titleInput = document.getElementById('tx-title');
+            setTimeout(() => {
+                titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                titleInput.focus();
+            }, 250);
+        }
+
+        // ==========================================
+        // 5. CORE CALCULATIONS & RENDERING
+        // ==========================================
+        function renderAll() {
+            document.getElementById('currency-select').value = state.currency;
+            document.getElementById('form-currency-symbol').textContent = getCurrencyMeta().symbol;
+            document.getElementById('nav-tx-count').textContent = state.transactions.length;
+
+            renderKPIsAndOverallBudget();
+            renderExpenseDonut();
+            renderCashFlowChart();
+            renderTransactions();
+            renderBudgetLimits();
+            renderGoals();
+            renderSmsSyncModule();
+            lucide.createIcons();
+        }
+
+        function getMonthTransactions(monthPrefix) {
+            return state.transactions.filter(tx => tx.date && tx.date.startsWith(monthPrefix));
+        }
+
+        function renderKPIsAndOverallBudget() {
+            let totalIncomeAll = 0;
+            let totalExpenseAll = 0;
+            let totalInvestmentAll = 0;
+
+            state.transactions.forEach(tx => {
+                const amt = Number(tx.amount) || 0;
+                if (tx.type === 'Income') totalIncomeAll += amt;
+                else if (tx.type === 'Expense') totalExpenseAll += amt;
+                else if (tx.type === 'Investment') totalInvestmentAll += amt;
+            });
+
+            const liquidCash = totalIncomeAll - totalExpenseAll - totalInvestmentAll;
+            const totalGoalsSaved = state.goals.reduce((acc, g) => acc + (Number(g.savedAmount) || 0), 0);
+            const totalNetWorth = liquidCash + totalGoalsSaved;
+
+            // Active month (October 2026) metrics
+            const octTxs = getMonthTransactions(ACTIVE_MONTH_PREFIX);
+            let monthIncome = 0;
+            let monthExpense = 0;
+            let monthInvestment = 0;
+            let expenseCount = 0;
+
+            octTxs.forEach(tx => {
+                const amt = Number(tx.amount) || 0;
+                if (tx.type === 'Income') monthIncome += amt;
+                else if (tx.type === 'Expense') {
+                    monthExpense += amt;
+                    expenseCount++;
+                } else if (tx.type === 'Investment') {
+                    monthInvestment += amt;
+                }
+            });
+
+            const monthNetSaved = monthIncome - monthExpense;
+            const savingsRate = monthIncome > 0 ? ((monthNetSaved / monthIncome) * 100) : 0;
+
+            document.getElementById('kpi-net-worth').textContent = formatMoney(totalNetWorth);
+            document.getElementById('kpi-liquid-cash').textContent = `Liquid: ${formatMoney(liquidCash)}`;
+            document.getElementById('kpi-goal-savings').textContent = `Funds: ${formatMoney(totalGoalsSaved)}`;
+
+            document.getElementById('kpi-income').textContent = formatMoney(monthIncome);
+            document.getElementById('kpi-expenses').textContent = formatMoney(monthExpense);
+            document.getElementById('kpi-expense-tx-count').textContent = `${expenseCount} entries`;
+            document.getElementById('kpi-investments-sub').textContent = `DPS: ${formatMoney(monthInvestment)}`;
+
+            document.getElementById('kpi-savings-rate').textContent = `${savingsRate.toFixed(1)}%`;
+            document.getElementById('kpi-net-saved').textContent = `Net Saved: ${formatMoney(monthNetSaved)}`;
+
+            // Financial Readiness Sidebar Badge
+            const healthBadge = document.getElementById('health-badge');
+            const healthTip = document.getElementById('health-tip');
+            if (savingsRate >= 25) {
+                healthBadge.textContent = 'Optimal';
+                healthBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400';
+                healthTip.textContent = `Capt Toha, you're saving ${savingsRate.toFixed(1)}% of your income this month—well above the 25% benchmark!`;
+            } else if (savingsRate >= 10) {
+                healthBadge.textContent = 'Steady';
+                healthBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400';
+                healthTip.textContent = `Your savings rate is ${savingsRate.toFixed(1)}%. Watch discretionary categories to hit 25%.`;
+            } else {
+                healthBadge.textContent = 'Review';
+                healthBadge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400';
+                healthTip.textContent = `Outflows are high relative to income this month. Review category caps below.`;
+            }
+
+            // Overall Monthly Budget Progress
+            const totalBudgetLimit = Object.values(state.budgets).reduce((a, b) => a + Number(b || 0), 0);
+            const totalOutflowTracked = monthExpense + monthInvestment;
+            const utilizationPct = totalBudgetLimit > 0 ? (totalOutflowTracked / totalBudgetLimit) * 100 : 0;
+            const clampedPct = Math.min(utilizationPct, 100);
+
+            document.getElementById('overall-budget-spent').textContent = formatMoney(totalOutflowTracked);
+            document.getElementById('overall-budget-limit').textContent = formatMoney(totalBudgetLimit);
+            document.getElementById('overall-budget-pct').textContent = `${utilizationPct.toFixed(1)}%`;
+
+            const barEl = document.getElementById('overall-budget-bar');
+            const pctBadge = document.getElementById('overall-budget-pct');
+            const statusText = document.getElementById('overall-budget-status');
+            barEl.style.width = `${clampedPct}%`;
+
+            if (utilizationPct >= 100) {
+                barEl.className = 'h-full rounded-full bg-gradient-to-r from-rose-500 to-red-600 transition-all duration-500';
+                pctBadge.className = 'px-2 py-0.5 rounded-lg font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400';
+                statusText.textContent = 'Over budget — monthly allocation exceeded';
+            } else if (utilizationPct >= 80) {
+                barEl.className = 'h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500';
+                pctBadge.className = 'px-2 py-0.5 rounded-lg font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400';
+                statusText.textContent = 'Approaching limit — over 80% of monthly budget utilized';
+            } else {
+                barEl.className = 'h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500';
+                pctBadge.className = 'px-2 py-0.5 rounded-lg font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
+                statusText.textContent = 'Safe zone — well within monthly category limits';
+            }
+
+            const remaining = totalBudgetLimit - totalOutflowTracked;
+            document.getElementById('overall-budget-remaining').textContent =
+                remaining >= 0 ? `Remaining: ${formatMoney(remaining)}` : `Exceeded: ${formatMoney(Math.abs(remaining))}`;
+        }
+
+        // ==========================================
+        // 6. EXPENSE BREAKDOWN DONUT CHART
+        // ==========================================
+        function renderExpenseDonut() {
+            const octTxs = getMonthTransactions(ACTIVE_MONTH_PREFIX).filter(t => t.type === 'Expense' || t.type === 'Investment');
+            const totalsByCategory = {};
+            let grandTotal = 0;
+
+            octTxs.forEach(tx => {
+                const amt = Number(tx.amount) || 0;
+                totalsByCategory[tx.category] = (totalsByCategory[tx.category] || 0) + amt;
+                grandTotal += amt;
+            });
+
+            document.getElementById('donut-center-total').textContent = formatMoney(grandTotal);
+
+            const svg = document.getElementById('expense-donut-svg');
+            const listContainer = document.getElementById('expense-breakdown-list');
+
+            svg.innerHTML = `<circle cx="60" cy="60" r="46" fill="transparent" stroke="currentColor" stroke-width="14" class="text-slate-100 dark:text-slate-800"></circle>`;
+            listContainer.innerHTML = '';
+
+            if (grandTotal <= 0) {
+                listContainer.innerHTML = `<p class="text-xs text-center text-slate-400 py-4">No outflows recorded for October 2026 yet.</p>`;
+                return;
+            }
+
+            const circumference = 2 * Math.PI * 46;
+            let accumulatedPercent = 0;
+
+            const sortedCategories = Object.entries(totalsByCategory).sort((a, b) => b[1] - a[1]);
+
+            sortedCategories.forEach(([category, amount]) => {
+                const pct = (amount / grandTotal) * 100;
+                const strokeLength = (pct / 100) * circumference;
+                const offset = circumference - (accumulatedPercent / 100) * circumference;
+                accumulatedPercent += pct;
+
+                const meta = CATEGORY_META[category] || CATEGORY_META['Miscellaneous'];
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', '60');
+                circle.setAttribute('cy', '60');
+                circle.setAttribute('r', '46');
+                circle.setAttribute('fill', 'transparent');
+                circle.setAttribute('stroke', meta.color);
+                circle.setAttribute('stroke-width', '14');
+                circle.setAttribute('stroke-dasharray', `${strokeLength} ${circumference}`);
+                circle.setAttribute('stroke-dashoffset', `${offset}`);
+                circle.setAttribute('class', 'donut-segment');
+                svg.appendChild(circle);
+
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between text-xs py-1';
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: ${meta.color}"></span>
+                        <span class="font-medium text-slate-700 dark:text-slate-200 truncate">${category}</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 font-mono flex-shrink-0">
+                        <span class="text-slate-900 dark:text-white font-semibold">${formatMoney(amount)}</span>
+                        <span class="text-slate-400 w-10 text-right">${pct.toFixed(1)}%</span>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+        }
+
+        // ==========================================
+        // 7. 6-MONTH CASH FLOW BAR CHART
+        // ==========================================
+        function renderCashFlowChart() {
+            const months = [
+                { key: '2026-05', label: 'May' },
+                { key: '2026-06', label: 'Jun' },
+                { key: '2026-07', label: 'Jul' },
+                { key: '2026-08', label: 'Aug' },
+                { key: '2026-09', label: 'Sep' },
+                { key: '2026-10', label: 'Oct' }
+            ];
+
+            const monthlyStats = months.map(m => {
+                const txs = getMonthTransactions(m.key);
+                let income = 0, expense = 0, investment = 0;
+                txs.forEach(t => {
+                    const amt = Number(t.amount) || 0;
+                    if (t.type === 'Income') income += amt;
+                    else if (t.type === 'Expense') expense += amt;
+                    else if (t.type === 'Investment') investment += amt;
+                });
+                return { ...m, income, expense, investment };
+            });
+
+            const maxVal = Math.max(
+                10000,
+                ...monthlyStats.map(s => Math.max(s.income, s.expense, s.investment))
+            );
+
+            const container = document.getElementById('cashflow-chart-container');
+            container.innerHTML = '';
+
+            let sixMonthSurplus = 0;
+
+            monthlyStats.forEach(stat => {
+                sixMonthSurplus += (stat.income - stat.expense);
+                const incHeight = Math.max(4, Math.round((stat.income / maxVal) * 165));
+                const expHeight = Math.max(4, Math.round((stat.expense / maxVal) * 165));
+                const invHeight = Math.max(4, Math.round((stat.investment / maxVal) * 165));
+
+                const group = document.createElement('div');
+                group.className = 'flex-1 flex flex-col items-center group relative cursor-pointer';
+                group.innerHTML = `
+                    <div class="opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity absolute -top-14 z-10 bg-slate-900 text-white text-[10px] font-mono p-2 rounded-lg shadow-xl border border-slate-700 whitespace-nowrap">
+                        <div class="text-emerald-400">In: ${formatMoney(stat.income)}</div>
+                        <div class="text-rose-400">Out: ${formatMoney(stat.expense)}</div>
+                        <div class="text-indigo-400">DPS: ${formatMoney(stat.investment)}</div>
+                    </div>
+                    <div class="w-full flex items-end justify-center gap-1 sm:gap-1.5 h-44">
+                        <div class="w-2.5 sm:w-3.5 bg-emerald-500 hover:bg-emerald-400 rounded-t-md transition-all duration-500" style="height: ${incHeight}px"></div>
+                        <div class="w-2.5 sm:w-3.5 bg-rose-500 hover:bg-rose-400 rounded-t-md transition-all duration-500" style="height: ${expHeight}px"></div>
+                        <div class="w-2.5 sm:w-3.5 bg-indigo-500 hover:bg-indigo-400 rounded-t-md transition-all duration-500" style="height: ${invHeight}px"></div>
+                    </div>
+                    <span class="mt-2 text-xs font-medium ${stat.key === ACTIVE_MONTH_PREFIX ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-500 dark:text-slate-400'}">${stat.label}</span>
+                `;
+                container.appendChild(group);
+            });
+
+            document.getElementById('six-month-avg-savings').textContent = `6M Net Surplus: ${formatMoney(sixMonthSurplus)}`;
+        }
+
+        // ==========================================
+        // 8. TRANSACTIONS CRUD & FILTERING
+        // ==========================================
+        function setTxType(type) {
+            document.getElementById('tx-type').value = type;
+            const types = ['Expense', 'Income', 'Investment'];
+            const activeStyles = {
+                Expense: 'bg-rose-500 text-white shadow',
+                Income: 'bg-emerald-600 text-white shadow',
+                Investment: 'bg-indigo-600 text-white shadow'
+            };
+
+            types.forEach(t => {
+                const btn = document.getElementById(`type-btn-${t}`);
+                if (t === type) {
+                    btn.className = `tx-type-btn py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${activeStyles[t]}`;
+                } else {
+                    btn.className = 'tx-type-btn py-2.5 px-3 rounded-lg text-xs font-semibold transition-all text-slate-600 dark:text-slate-300';
+                }
+            });
+
+            const catSelect = document.getElementById('tx-category');
+            if (type === 'Income') catSelect.value = 'Salary & Allowances';
+            else if (type === 'Investment') catSelect.value = 'Savings / DPS';
+            else if (catSelect.value === 'Salary & Allowances' || catSelect.value === 'Savings / DPS') catSelect.value = 'Mess Bill';
+        }
+
+        function handleTransactionSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('tx-edit-id').value;
+            const title = document.getElementById('tx-title').value.trim();
+            const rawInputAmount = parseFloat(document.getElementById('tx-amount').value);
+            const type = document.getElementById('tx-type').value;
+            const category = document.getElementById('tx-category').value;
+            const date = document.getElementById('tx-date').value;
+            const method = document.getElementById('tx-method').value;
+
+            if (!title || isNaN(rawInputAmount) || rawInputAmount <= 0 || !date) {
+                showToast('Please fill out all transaction fields with valid values.', 'rose');
+                return;
+            }
+
+            const baseAmountBDT = toBaseBDT(rawInputAmount);
+
+            if (editId) {
+                const idx = state.transactions.findIndex(t => t.id === editId);
+                if (idx !== -1) {
+                    state.transactions[idx] = { id: editId, title, amount: baseAmountBDT, type, category, date, method };
+                    showToast('Ledger entry updated!', 'indigo');
+                }
+            } else {
+                const newTx = {
+                    id: 'tx-' + Date.now(),
+                    title,
+                    amount: baseAmountBDT,
+                    type,
+                    category,
+                    date,
+                    method
+                };
+                state.transactions.unshift(newTx);
+                showToast(`${type} logged (${formatMoney(baseAmountBDT)})`, 'emerald');
+            }
+
+            saveState();
+            resetTransactionForm();
+            renderAll();
+        }
+
+        function editTransaction(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if (!tx) return;
+
+            document.getElementById('tx-edit-id').value = tx.id;
+            document.getElementById('tx-title').value = tx.title;
+            document.getElementById('tx-amount').value = fromBaseBDT(tx.amount);
+            setTxType(tx.type);
+            document.getElementById('tx-category').value = tx.category;
+            document.getElementById('tx-date').value = tx.date;
+            document.getElementById('tx-method').value = tx.method;
+
+            document.getElementById('tx-form-title').textContent = 'Edit Ledger Entry';
+            document.getElementById('tx-submit-label').textContent = 'Update Entry';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            document.getElementById('transaction-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetTransactionForm() {
+            document.getElementById('tx-edit-id').value = '';
+            document.getElementById('tx-title').value = '';
+            document.getElementById('tx-amount').value = '';
+            document.getElementById('tx-date').value = '2026-10-20';
+            setTxType('Expense');
+            document.getElementById('tx-category').value = 'Mess Bill';
+            document.getElementById('tx-method').value = 'bKash / Nagad';
+
+            document.getElementById('tx-form-title').textContent = 'Log Transaction';
+            document.getElementById('tx-submit-label').textContent = 'Save to Ledger';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
+        function deleteTransaction(id) {
+            const tx = state.transactions.find(t => t.id === id);
+            if (!tx) return;
+
+            openModal({
+                title: 'Delete Transaction',
+                bodyHTML: `Remove <strong class="text-slate-900 dark:text-white">${escapeHTML(tx.title)}</strong> (${formatMoney(tx.amount)}) from your ledger?`,
+                confirmText: 'Delete Entry',
+                confirmVariant: 'rose',
+                onConfirm: () => {
+                    state.transactions = state.transactions.filter(t => t.id !== id);
+                    saveState();
+                    renderAll();
+                    showToast('Transaction removed.', 'rose');
+                }
+            });
+        }
+
+        function renderTransactions() {
+            const search = (document.getElementById('filter-search').value || '').toLowerCase().trim();
+            const typeFilter = document.getElementById('filter-type').value;
+            const catFilter = document.getElementById('filter-category').value;
+
+            const filtered = state.transactions
+                .filter(tx => {
+                    const matchesSearch = !search ||
+                        tx.title.toLowerCase().includes(search) ||
+                        tx.method.toLowerCase().includes(search) ||
+                        tx.category.toLowerCase().includes(search);
+                    const matchesType = typeFilter === 'ALL' || tx.type === typeFilter;
+                    const matchesCat = catFilter === 'ALL' || tx.category === catFilter;
+                    return matchesSearch && matchesType && matchesCat;
+                })
+                .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+            const tbody = document.getElementById('transaction-table-body');
+            tbody.innerHTML = '';
+
+            let filteredNet = 0;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-slate-400 text-xs">
+                            No transactions match your current filter.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                filtered.forEach(tx => {
+                    const amt = Number(tx.amount) || 0;
+                    if (tx.type === 'Income') filteredNet += amt;
+                    else filteredNet -= amt;
+
+                    const meta = CATEGORY_META[tx.category] || CATEGORY_META['Miscellaneous'];
+                    const amountBadge = tx.type === 'Income'
+                        ? `<span class="text-emerald-600 dark:text-emerald-400 font-semibold">+${formatMoney(amt)}</span>`
+                        : tx.type === 'Investment'
+                        ? `<span class="text-indigo-600 dark:text-indigo-400 font-semibold">${formatMoney(amt)}</span>`
+                        : `<span class="text-rose-600 dark:text-rose-400 font-semibold">-${formatMoney(amt)}</span>`;
+
+                    const typePill = tx.type === 'Income'
+                        ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium">Income</span>`
+                        : tx.type === 'Investment'
+                        ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-medium">DPS/Saved</span>`
+                        : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 font-medium">Expense</span>`;
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition group';
+                    tr.innerHTML = `
+                        <td class="py-3 pr-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl ${meta.bg} ${meta.text} flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="${meta.icon}" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-slate-900 dark:text-white text-xs sm:text-sm truncate">${escapeHTML(tx.title)}</div>
+                                    <div class="flex items-center gap-1.5 mt-0.5 sm:hidden text-[10px] text-slate-400">
+                                        <span>${tx.category}</span> • <span>${tx.date}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-2 hidden sm:table-cell">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">${tx.category}</span>
+                                ${typePill}
+                            </div>
+                        </td>
+                        <td class="py-3 px-2 hidden md:table-cell">
+                            <div class="text-xs text-slate-700 dark:text-slate-300 font-mono">${tx.date}</div>
+                            <div class="text-[11px] text-slate-400">${escapeHTML(tx.method)}</div>
+                        </td>
+                        <td class="py-3 px-2 text-right font-mono text-xs sm:text-sm whitespace-nowrap">
+                            ${amountBadge}
+                        </td>
+                        <td class="py-3 pl-2 text-right whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1">
+                                <button onclick="editTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition" title="Edit">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="deleteTransaction('${tx.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition" title="Delete">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('filtered-tx-summary').textContent = `Showing ${filtered.length} of ${state.transactions.length} entries`;
+            document.getElementById('filtered-tx-net').textContent = `Filtered Net: ${formatMoney(filteredNet)}`;
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 9. BUDGET & CATEGORY LIMITS
+        // ==========================================
+        function renderBudgetLimits() {
+            const container = document.getElementById('budget-limits-container');
+            container.innerHTML = '';
+
+            const octTxs = getMonthTransactions(ACTIVE_MONTH_PREFIX);
+            const spentByCat = {};
+            octTxs.forEach(tx => {
+                if (tx.type === 'Expense' || tx.type === 'Investment') {
+                    spentByCat[tx.category] = (spentByCat[tx.category] || 0) + (Number(tx.amount) || 0);
+                }
+            });
+
+            Object.entries(state.budgets).forEach(([category, limitBDT]) => {
+                const spentBDT = spentByCat[category] || 0;
+                const pct = limitBDT > 0 ? (spentBDT / limitBDT) * 100 : 0;
+                const clamped = Math.min(pct, 100);
+                const meta = CATEGORY_META[category] || CATEGORY_META['Miscellaneous'];
+
+                let barColor = 'bg-emerald-500';
+                let statusBadge = `<span class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">${pct.toFixed(0)}% used</span>`;
+
+                if (pct >= 100) {
+                    barColor = 'bg-rose-500';
+                    statusBadge = `<span class="text-[11px] font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> ${pct.toFixed(0)}% (Exceeded)</span>`;
+                } else if (pct >= 80) {
+                    barColor = 'bg-amber-500';
+                    statusBadge = `<span class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> ${pct.toFixed(0)}% (Near Cap)</span>`;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800';
+                item.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg ${meta.bg} ${meta.text} flex items-center justify-center">
+                                <i data-lucide="${meta.icon}" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">${category}</div>
+                                ${statusBadge}
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <div class="flex items-center gap-1.5 justify-end font-mono text-xs sm:text-sm">
+                                <span class="font-bold text-slate-900 dark:text-white">${formatMoney(spentBDT)}</span>
+                                <span class="text-slate-400">/</span>
+                                <button onclick="openEditBudgetModal('${category}')" class="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold flex items-center gap-1" title="Edit Monthly Limit">
+                                    <span>${formatMoney(limitBDT)}</span>
+                                    <i data-lucide="edit-3" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700/70 rounded-full overflow-hidden">
+                        <div class="h-full ${barColor} rounded-full transition-all duration-500" style="width: ${clamped}%"></div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function openEditBudgetModal(category) {
+            const currentLimitActiveCurr = fromBaseBDT(state.budgets[category] || 0);
+            const symbol = getCurrencyMeta().symbol;
+
+            openModal({
+                title: `Set Monthly Limit — ${category}`,
+                bodyHTML: `
+                    <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">
+                        Monthly Cap (${symbol})
+                    </label>
+                    <input type="number" id="modal-budget-input" min="1" step="any" inputmode="decimal" value="${currentLimitActiveCurr}" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                `,
+                confirmText: 'Save Limit',
+                confirmVariant: 'emerald',
+                onConfirm: () => {
+                    const val = parseFloat(document.getElementById('modal-budget-input').value);
+                    if (isNaN(val) || val <= 0) {
+                        showToast('Please enter a valid positive limit.', 'rose');
+                        return false;
+                    }
+                    state.budgets[category] = toBaseBDT(val);
+                    saveState();
+                    renderAll();
+                    showToast(`Updated ${category} limit to ${formatMoney(state.budgets[category])}`, 'emerald');
+                }
+            });
+        }
+
+        // ==========================================
+        // 10. SAVINGS & FINANCIAL GOALS TRACKER
+        // ==========================================
+        function renderGoals() {
+            const container = document.getElementById('goals-container');
+            container.innerHTML = '';
+
+            let totalTarget = 0;
+            let totalSaved = 0;
+
+            state.goals.forEach(goal => {
+                const target = Number(goal.targetAmount) || 1;
+                const saved = Number(goal.savedAmount) || 0;
+                totalTarget += target;
+                totalSaved += saved;
+
+                const pct = Math.min(100, (saved / target) * 100);
+
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 flex flex-col justify-between gap-4 hover:border-emerald-500/40 transition';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-500">
+                                    <i data-lucide="${goal.icon || 'target'}" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-snug">${escapeHTML(goal.title)}</h4>
+                                    <span class="text-[11px] text-slate-400">${escapeHTML(goal.category || 'Savings Goal')}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">${pct.toFixed(0)}%</span>
+                        </div>
+
+                        <div class="my-2">
+                            <div class="flex items-baseline justify-between text-xs font-mono mb-1.5">
+                                <span class="font-bold text-slate-900 dark:text-white text-sm">${formatMoney(saved)}</span>
+                                <span class="text-slate-400">of ${formatMoney(target)}</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-emerald-500 to-indigo-500 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/50">
+                        <span class="text-[11px] text-slate-400">
+                            ${target - saved > 0 ? `${formatMoney(target - saved)} remaining` : 'Goal Achieved! 🎉'}
+                        </span>
+                        <button onclick="openAddGoalFundsModal('${goal.id}')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow shadow-emerald-600/20 transition flex items-center gap-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Add Funds</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const overallPct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+            document.getElementById('goals-total-progress-label').textContent = `Combined Progress: ${overallPct.toFixed(1)}%`;
+            document.getElementById('goals-total-saved-label').textContent = `Total Saved: ${formatMoney(totalSaved)}`;
+        }
+
+        function openAddGoalFundsModal(goalId) {
+            const goal = state.goals.find(g => g.id === goalId);
+            if (!goal) return;
+            const symbol = getCurrencyMeta().symbol;
+
+            openModal({
+                title: `Add Funds — ${goal.title}`,
+                bodyHTML: `
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                        Current Saved: <strong class="font-mono text-slate-800 dark:text-slate-200">${formatMoney(goal.savedAmount)}</strong> / ${formatMoney(goal.targetAmount)}
+                    </p>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                        Contribution Amount (${symbol})
+                    </label>
+                    <input type="number" id="modal-goal-fund-input" min="1" step="any" inputmode="decimal" placeholder="e.g., 10000" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 mb-3">
+                    <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="modal-goal-log-tx" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+                        <span>Also record as a Savings/DPS entry in October ledger</span>
+                    </label>
+                `,
+                confirmText: '+ Deposit Funds',
+                confirmVariant: 'emerald',
+                onConfirm: () => {
+                    const rawVal = parseFloat(document.getElementById('modal-goal-fund-input').value);
+                    const alsoLog = document.getElementById('modal-goal-log-tx').checked;
+                    if (isNaN(rawVal) || rawVal <= 0) {
+                        showToast('Please enter a valid deposit amount.', 'rose');
+                        return false;
+                    }
+                    const addBDT = toBaseBDT(rawVal);
+                    goal.savedAmount = (Number(goal.savedAmount) || 0) + addBDT;
+
+                    if (alsoLog) {
+                        state.transactions.unshift({
+                            id: 'tx-' + Date.now(),
+                            title: `Fund Allocation: ${goal.title}`,
+                            amount: addBDT,
+                            type: 'Investment',
+                            category: 'Savings / DPS',
+                            date: '2026-10-20',
+                            method: 'Trust Bank / Bank Transfer'
+                        });
+                    }
+
+                    saveState();
+                    renderAll();
+                    showToast(`Added ${formatMoney(addBDT)} to ${goal.title}!`, 'emerald');
+                }
+            });
+        }
+
+        function openNewGoalModal() {
+            const symbol = getCurrencyMeta().symbol;
+            openModal({
+                title: 'Create New Financial Goal',
+                bodyHTML: `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Goal Title</label>
+                            <input type="text" id="new-goal-title" placeholder="e.g., Land Plot Deposit, Hajj Fund, MacBook" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Target (${symbol})</label>
+                                <input type="number" id="new-goal-target" min="1" step="any" inputmode="decimal" placeholder="200000" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Initial Saved (${symbol})</label>
+                                <input type="number" id="new-goal-saved" min="0" step="any" inputmode="decimal" value="0" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-sm font-mono text-slate-900 dark:text-white">
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmText: 'Create Goal',
+                confirmVariant: 'emerald',
+                onConfirm: () => {
+                    const title = document.getElementById('new-goal-title').value.trim();
+                    const targetRaw = parseFloat(document.getElementById('new-goal-target').value);
+                    const savedRaw = parseFloat(document.getElementById('new-goal-saved').value) || 0;
+
+                    if (!title || isNaN(targetRaw) || targetRaw <= 0) {
+                        showToast('Please provide a valid title and target amount.', 'rose');
+                        return false;
+                    }
+
+                    state.goals.push({
+                        id: 'goal-' + Date.now(),
+                        title,
+                        targetAmount: toBaseBDT(targetRaw),
+                        savedAmount: toBaseBDT(savedRaw),
+                        category: 'Personal Milestone',
+                        icon: 'sparkles'
+                    });
+
+                    saveState();
+                    renderAll();
+                    showToast(`Created goal "${title}"!`, 'emerald');
+                }
+            });
+        }
+
+        // ==========================================
+        // 11. DATA BACKUP (JSON + CSV) & RESTORE
+        // ==========================================
+        function exportBackupJSON() {
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Capt_Tanvir_Toha_Finance_Backup_${ACTIVE_MONTH_PREFIX}.json`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Full JSON Backup downloaded!', 'emerald');
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && Array.isArray(imported.transactions) && imported.budgets && Array.isArray(imported.goals)) {
+                        state = imported;
+                        saveState();
+                        renderAll();
+                        showToast('Backup restored!', 'emerald');
+                    } else {
+                        showToast('Invalid backup file format.', 'rose');
+                    }
+                } catch (err) {
+                    showToast('Could not read JSON backup file.', 'rose');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function exportToCSV() {
+            if (!state.transactions.length) {
+                showToast('No transactions available to export.', 'amber');
+                return;
+            }
+
+            const meta = getCurrencyMeta();
+            const headers = ['ID', 'Date', 'Particulars', 'Type', 'Category', 'Payment Channel', `Amount (${meta.code})`, 'Base Amount (BDT)'];
+            const rows = state.transactions.map(tx => {
+                const converted = ((Number(tx.amount) || 0) * meta.rate).toFixed(meta.decimals);
+                const safeTitle = `"${String(tx.title).replace(/"/g, '""')}"`;
+                const safeMethod = `"${String(tx.method).replace(/"/g, '""')}"`;
+                return [tx.id, tx.date, safeTitle, tx.type, tx.category, safeMethod, converted, Math.round(tx.amount)].join(',');
+            });
+
+            const csvContent = [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Capt_Tanvir_Toha_Ledger_${ACTIVE_MONTH_PREFIX}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showToast('Exported Capt Toha\'s ledger to CSV!', 'emerald');
+        }
+
+        function resetSampleDataPrompt() {
+            openModal({
+                title: 'Restore Default Ledger Data',
+                bodyHTML: 'This will restore the default sample transactions, Mess/Family budgets, and savings goals tailored for Capt Tanvir Ahmed Toha. Proceed?',
+                confirmText: 'Restore Default Data',
+                confirmVariant: 'indigo',
+                onConfirm: () => {
+                    const currentCurr = state.currency;
+                    state = getDefaultState();
+                    state.currency = currentCurr;
+                    saveState();
+                    renderAll();
+                    showToast('Default ledger data restored!', 'emerald');
+                }
+            });
+        }
+
+        function clearAllDataPrompt() {
+            openModal({
+                title: 'Clear All Ledger Entries',
+                bodyHTML: 'Are you sure you want to remove all transactions and reset your savings goals to zero to start fresh?',
+                confirmText: 'Start Fresh (Clear)',
+                confirmVariant: 'rose',
+                onConfirm: () => {
+                    state.transactions = [];
+                    state.goals.forEach(g => g.savedAmount = 0);
+                    saveState();
+                    renderAll();
+                    showToast('All entries cleared. Ready for your fresh records!', 'rose');
+                }
+            });
+        }
+
+        function escapeHTML(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // ==========================================
+        // 12. OPTION 3: BANGLADESHI BANK & MFS SMS PARSER ENGINE
+        // ==========================================
+        const SAMPLE_SMS_PRESETS = {
+            trust_salary: {
+                sender: 'TrustBank',
+                body: 'Your A/C **4821 has been credited with BDT 84,500.00 on 22-Oct-2026 by SFC ARMY PAY & ALLOWANCE. Avl Bal: BDT 1,96,200.00. Ref: TBL' + Math.floor(100000 + Math.random() * 900000)
+            },
+            bkash_cashout: {
+                sender: 'bKash',
+                body: 'Cash Out Tk 5,500.00 to 01715****21 successful. Fee Tk 99.00. Balance Tk 14,200.00. TrxID BKS' + Math.floor(100000 + Math.random() * 900000) + ' at 22/10/2026 14:20. Family support'
+            },
+            city_fuel: {
+                sender: 'CityBank',
+                body: 'Purchase of BDT 3,850.00 with AMEX Card **9012 at TRUST FILLING STATION OCTANE DHAKA on 22-Oct-26. Avl Limit: BDT 1,45,000.00. TrxID: CTY' + Math.floor(100000 + Math.random() * 900000)
+            },
+            nagad_mess: {
+                sender: 'Nagad',
+                body: 'Bill Pay Tk 6,200.00 to OFFICERS MESS EME CENTER successful. TxnID NGD' + Math.floor(100000 + Math.random() * 900000) + '. Bal Tk 9,850.00.'
+            }
+        };
+
+        function parseBangladeshiFinancialSms(senderInput, rawBody) {
+            const sender = String(senderInput || 'BankSMS').trim();
+            const body = String(rawBody || '').trim();
+            if (!body) return null;
+
+            const lower = body.toLowerCase();
+            const senderLower = sender.toLowerCase();
+
+            // 1. Extract primary transaction amount (prioritize Amount before Balance/Fee)
+            // Strip out "Avl Bal: BDT xxx", "Balance Tk xxx", "Fee Tk xxx" so we don't accidentally grab balance
+            const cleanedForAmount = body
+                .replace(/(?:avl\.?\s*bal(?:ance)?|available\s*balance|curr(?:ent)?\s*bal(?:ance)?|bal(?:ance)?|avl\s*limit|fee|charge)\s*[:is=-]*\s*(?:bdt|tk\.?|taka|\$)\s*[\d,]+(?:\.\d{1,2})?/gi, '')
+                .replace(/(?:bdt|tk\.?|taka)\s*[\d,]+(?:\.\d{1,2})?\s*(?:fee|charge)/gi, '');
+
+            const amountRegex = /(?:bdt|tk\.?|taka|amount\s*[:=-]?)\s*([\d,]+(?:\.\d{1,2})?)/i;
+            const match = cleanedForAmount.match(amountRegex) || body.match(amountRegex);
+            if (!match || !match[1]) return null;
+
+            const amountBDT = parseFloat(match[1].replace(/,/g, ''));
+            if (isNaN(amountBDT) || amountBDT <= 0) return null;
+
+            // 2. Detect Transaction Type (Income vs Investment vs Expense)
+            let type = 'Expense';
+            const creditKeywords = /\b(credited|received|deposit(?:ed)?|cash\s*in|salary|allowance|refund|inward|remittance\s*received)\b/i;
+            const dpsKeywords = /\b(dps|sanchaypatra|fdr|mutual\s*fund|investment\s*installment)\b/i;
+            const debitKeywords = /\b(debited|paid|payment|purchase|withdrawn|withdrawal|cash\s*out|send\s*money|transfer(?:red)?|bill\s*pay|pos|atm|deducted)\b/i;
+
+            if (dpsKeywords.test(lower)) {
+                type = 'Investment';
+            } else if (creditKeywords.test(lower) && !/\bdebited\b/i.test(lower)) {
+                type = 'Income';
+            } else if (debitKeywords.test(lower)) {
+                type = 'Expense';
+            }
+
+            // 3. Detect Payment Channel (Bank / bKash / Nagad / Card)
+            let channel = 'Trust Bank / Bank Transfer';
+            if (senderLower.includes('bkash') || lower.includes('bkash') || senderLower.includes('16247')) {
+                channel = 'bKash / Nagad';
+            } else if (senderLower.includes('nagad') || lower.includes('nagad') || senderLower.includes('16167')) {
+                channel = 'bKash / Nagad';
+            } else if (/\b(card|pos|amex|visa|mastercard)\b/i.test(lower)) {
+                channel = 'Debit / Credit Card';
+            } else if (/\b(trust|tbl|city|brac|dbbl|sonali|islami|ebank)\b/i.test(senderLower + ' ' + lower)) {
+                channel = 'Trust Bank / Bank Transfer';
+            }
+
+            // 4. Auto-Map Category based on keywords
+            let category = type === 'Income' ? 'Salary & Allowances' : (type === 'Investment' ? 'Savings / DPS' : 'Miscellaneous');
+
+            if (type === 'Income') {
+                category = 'Salary & Allowances';
+            } else if (type === 'Investment') {
+                category = 'Savings / DPS';
+            } else if (/\b(mess|canteen|officers\s*mess|regiment)\b/i.test(lower)) {
+                category = 'Mess Bill';
+            } else if (/\b(fuel|octane|petrol|cng|filling\s*station|civic|honda|car\s*wash|auto|garage|workshop|toll)\b/i.test(lower)) {
+                category = 'Vehicle & Fuel';
+            } else if (/\b(csd|shwapno|swapno|agora|meena|unimart|grocery|groceries|bazar|mart|super\s*shop|food)\b/i.test(lower)) {
+                category = 'Groceries';
+            } else if (/\b(desco|dpdc|wasa|titas|internet|wifi|btcl|grameenphone|robi|airtel|banglalink|family|home|electricity|utility|rent|send\s*money|cash\s*out)\b/i.test(lower)) {
+                category = 'Family & Utilities';
+            } else if (/\b(book|course|tuition|exam|training|university|academy|eme\s*school)\b/i.test(lower)) {
+                category = 'Education & Courses';
+            }
+
+            // 5. Extract Merchant / Title Particular
+            let merchant = '';
+            const merchantMatch = body.match(/\b(?:at|to|by|from)\s+([A-Z0-9][A-Za-z0-9\s&'.-]{2,28}?)(?:\s+on\b|\s+successful|\.\s|\s+Avl|\s+Bal|\s+TrxID|\s+TxnID|\s+Ref|$)/);
+            if (merchantMatch && merchantMatch[1]) {
+                merchant = merchantMatch[1].trim();
+            }
+
+            const bankLabel = sender || 'Bank';
+            const title = merchant
+                ? `${bankLabel}: ${merchant}`
+                : `${bankLabel} ${type === 'Income' ? 'Credit Alert' : 'Debit Alert'} (${category})`;
+
+            // 6. Extract Reference / TrxID for Deduplication
+            let trxId = '';
+            const trxMatch = body.match(/(?:trxid|txnid|ref(?:\s*no)?|stan|id)\s*[:#=-]?\s*([A-Z0-9-]{5,20})/i);
+            if (trxMatch && trxMatch[1]) {
+                trxId = trxMatch[1].toUpperCase();
+            } else {
+                // Fallback deterministic hash from sender + amount + first 24 chars
+                let hash = 0;
+                const sig = `${sender}|${amountBDT}|${body.slice(0, 40)}`;
+                for (let i = 0; i < sig.length; i++) {
+                    hash = ((hash << 5) - hash) + sig.charCodeAt(i);
+                    hash |= 0;
+                }
+                trxId = 'SMS-' + Math.abs(hash);
+            }
+
+            return {
+                sender,
+                body,
+                title,
+                amount: amountBDT,
+                type,
+                category,
+                channel,
+                trxId,
+                date: '2026-10-22'
+            };
+        }
+
+        // Global Native Android Bridge Hook (Called by Android WebView / Kotlin BroadcastReceiver)
+        window.onNativeSmsReceived = function(sender, body, timestamp) {
+            const parsed = parseBangladeshiFinancialSms(sender, body);
+            if (!parsed) {
+                showToast(`Ignored non-financial SMS from ${sender}`, 'amber');
+                return false;
+            }
+
+            // Deduplication check
+            if (state.processedSmsHashes.includes(parsed.trxId)) {
+                showToast(`Duplicate SMS skipped (TrxID: ${parsed.trxId})`, 'amber');
+                return false;
+            }
+
+            const nowStr = new Date(timestamp || Date.now()).toLocaleString('en-GB', {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+
+            if (state.smsAutoApprove) {
+                commitParsedSmsToLedger(parsed, nowStr);
+                showToast(`Auto-Synced ${parsed.type}: ${formatMoney(parsed.amount)} (${parsed.category})`, 'emerald');
+            } else {
+                state.pendingSmsQueue.unshift({
+                    id: 'pend-' + Date.now(),
+                    ...parsed,
+                    timestamp: nowStr
+                });
+                saveState();
+                renderAll();
+                showToast(`SMS queued for review: ${formatMoney(parsed.amount)} from ${parsed.sender}`, 'indigo');
+            }
+            return true;
+        };
+
+        function commitParsedSmsToLedger(parsed, timestampLabel) {
+            state.processedSmsHashes.push(parsed.trxId);
+
+            state.transactions.unshift({
+                id: 'tx-sms-' + Date.now(),
+                title: parsed.title,
+                amount: parsed.amount,
+                type: parsed.type,
+                category: parsed.category,
+                date: parsed.date || '2026-10-22',
+                method: parsed.channel
+            });
+
+            state.smsHistoryLog.unshift({
+                id: 'sms-log-' + Date.now(),
+                sender: parsed.sender,
+                body: parsed.body,
+                parsedType: parsed.type,
+                amount: parsed.amount,
+                category: parsed.category,
+                channel: parsed.channel,
+                trxId: parsed.trxId,
+                timestamp: timestampLabel || '2026-10-22'
+            });
+
+            saveState();
+            renderAll();
+        }
+
+        function loadSampleSms(presetKey) {
+            const preset = SAMPLE_SMS_PRESETS[presetKey];
+            if (!preset) return;
+            document.getElementById('sms-sender-input').value = preset.sender;
+            document.getElementById('sms-body-input').value = preset.body;
+            updateLiveSmsPreview();
+        }
+
+        function updateLiveSmsPreview() {
+            const sender = document.getElementById('sms-sender-input').value;
+            const body = document.getElementById('sms-body-input').value;
+            const parsed = parseBangladeshiFinancialSms(sender, body);
+
+            const badge = document.getElementById('preview-confidence-badge');
+            const typeEl = document.getElementById('preview-tx-type');
+            const amtEl = document.getElementById('preview-tx-amount');
+            const catEl = document.getElementById('preview-tx-category');
+            const refEl = document.getElementById('preview-tx-ref');
+
+            if (!parsed) {
+                badge.textContent = 'No financial amount detected';
+                badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+                typeEl.textContent = '—';
+                amtEl.textContent = '৳0';
+                catEl.textContent = '—';
+                refEl.textContent = '—';
+                return;
+            }
+
+            badge.textContent = `Matched • ${parsed.channel}`;
+            badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-semibold';
+
+            typeEl.textContent = parsed.type;
+            typeEl.className = parsed.type === 'Income'
+                ? 'font-bold text-emerald-600 dark:text-emerald-400 mt-0.5'
+                : parsed.type === 'Investment'
+                ? 'font-bold text-indigo-600 dark:text-indigo-400 mt-0.5'
+                : 'font-bold text-rose-600 dark:text-rose-400 mt-0.5';
+
+            amtEl.textContent = formatMoney(parsed.amount);
+            catEl.textContent = parsed.category;
+            refEl.textContent = parsed.trxId;
+        }
+
+        function triggerSimulatedNativeSms() {
+            const sender = document.getElementById('sms-sender-input').value.trim() || 'BankSMS';
+            const body = document.getElementById('sms-body-input').value.trim();
+            if (!body) {
+                showToast('Select a sample SMS preset or paste an SMS message first.', 'rose');
+                return;
+            }
+            const ok = window.onNativeSmsReceived(sender, body, Date.now());
+            if (ok) {
+                document.getElementById('sms-body-input').value = '';
+                updateLiveSmsPreview();
+            }
+        }
+
+        function clearSmsInputBox() {
+            document.getElementById('sms-body-input').value = '';
+            updateLiveSmsPreview();
+        }
+
+        async function pasteClipboardToSmsBox() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        document.getElementById('sms-body-input').value = text;
+                        updateLiveSmsPreview();
+                        showToast('Clipboard pasted into SMS parser!', 'emerald');
+                        return;
+                    }
+                }
+            } catch (err) {
+                // Fallback if iframe clipboard read is restricted
+            }
+            const input = document.getElementById('sms-body-input');
+            input.focus();
+            showToast('Long-press inside the SMS box and tap Paste.', 'indigo');
+        }
+
+        function toggleSmsAutoApprove() {
+            state.smsAutoApprove = !state.smsAutoApprove;
+            saveState();
+            renderSmsSyncModule();
+            showToast(
+                state.smsAutoApprove
+                    ? 'Auto-Approve ON: Incoming SMS alerts will save directly to ledger.'
+                    : 'Auto-Approve OFF: Incoming SMS alerts will wait in Pending Review Queue.',
+                'indigo'
+            );
+        }
+
+        function approvePendingSms(pendingId) {
+            const idx = state.pendingSmsQueue.findIndex(item => item.id === pendingId);
+            if (idx === -1) return;
+            const item = state.pendingSmsQueue[idx];
+            state.pendingSmsQueue.splice(idx, 1);
+            commitParsedSmsToLedger(item, item.timestamp);
+            showToast(`Approved & logged ${formatMoney(item.amount)} (${item.category})`, 'emerald');
+        }
+
+        function rejectPendingSms(pendingId) {
+            state.pendingSmsQueue = state.pendingSmsQueue.filter(item => item.id !== pendingId);
+            saveState();
+            renderSmsSyncModule();
+            showToast('Pending SMS dismissed.', 'rose');
+        }
+
+        function clearSmsLogHistory() {
+            state.smsHistoryLog = [];
+            saveState();
+            renderSmsSyncModule();
+            showToast('SMS sync history cleared.', 'indigo');
+        }
+
+        function renderSmsSyncModule() {
+            const toggleBtn = document.getElementById('auto-approve-toggle-btn');
+            const knob = document.getElementById('auto-approve-knob');
+            if (!toggleBtn || !knob) return;
+
+            if (state.smsAutoApprove) {
+                toggleBtn.className = 'w-12 h-6 rounded-full bg-emerald-500 p-0.5 transition-colors flex items-center';
+                knob.className = 'w-5 h-5 rounded-full bg-white shadow transform translate-x-6 transition-transform';
+            } else {
+                toggleBtn.className = 'w-12 h-6 rounded-full bg-slate-600 p-0.5 transition-colors flex items-center';
+                knob.className = 'w-5 h-5 rounded-full bg-white shadow transform translate-x-0 transition-transform';
+            }
+
+            document.getElementById('sms-processed-count').textContent = `Synced SMS: ${state.smsHistoryLog.length}`;
+            document.getElementById('sms-pending-count').textContent = `Pending Queue: ${state.pendingSmsQueue.length}`;
+
+            const navBadge = document.getElementById('nav-sms-badge');
+            if (navBadge) {
+                navBadge.textContent = state.pendingSmsQueue.length > 0 ? `${state.pendingSmsQueue.length} NEW` : 'LIVE';
+            }
+
+            // Render Pending Queue
+            const pendingWrapper = document.getElementById('sms-pending-queue-wrapper');
+            const pendingList = document.getElementById('sms-pending-list');
+            pendingList.innerHTML = '';
+
+            if (state.pendingSmsQueue.length > 0) {
+                pendingWrapper.classList.remove('hidden');
+                state.pendingSmsQueue.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2';
+                    div.innerHTML = `
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white truncate">${escapeHTML(item.title)}</div>
+                            <div class="text-[11px] font-mono text-amber-600 dark:text-amber-400">${item.type}: ${formatMoney(item.amount)} • ${item.category}</div>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <button onclick="approvePendingSms('${item.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-semibold">Approve</button>
+                            <button onclick="rejectPendingSms('${item.id}')" class="p-1 rounded-lg text-rose-500 hover:bg-rose-500/10"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    `;
+                    pendingList.appendChild(div);
+                });
+            } else {
+                pendingWrapper.classList.add('hidden');
+            }
+
+            // Render Processed History
+            const historyList = document.getElementById('sms-history-list');
+            historyList.innerHTML = '';
+
+            if (state.smsHistoryLog.length === 0) {
+                historyList.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">No auto-synced SMS messages yet. Tap any preset on the left to test!</p>`;
+            } else {
+                state.smsHistoryLog.forEach(log => {
+                    const badgeClass = log.parsedType === 'Income'
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                        : 'text-rose-600 dark:text-rose-400 bg-rose-500/10';
+                    const sign = log.parsedType === 'Income' ? '+' : '-';
+
+                    const item = document.createElement('div');
+                    item.className = 'p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 space-y-1.5';
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">${escapeHTML(log.sender)}</span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">${escapeHTML(log.trxId)}</span>
+                            </div>
+                            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg ${badgeClass}">${sign}${formatMoney(log.amount)}</span>
+                        </div>
+                        <p class="text-[11px] font-mono text-slate-500 dark:text-slate-400 line-clamp-2">${escapeHTML(log.body)}</p>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                            <span>Mapped: <strong class="text-slate-600 dark:text-slate-300">${escapeHTML(log.category)}</strong></span>
+                            <span>${escapeHTML(log.timestamp || '')}</span>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+            }
+        }
+
+        function copyCodeSnippet(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const text = el.innerText || el.textContent;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Code snippet copied to clipboard!', 'emerald');
+        }
+
+        // Check URL parameters (?sms=...&sender=...) on startup for MacroDroid / Shortcuts automation
+        function checkUrlDeepLinkSms() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const smsBody = params.get('sms') || params.get('body') || params.get('text');
+                const smsSender = params.get('sender') || params.get('from') || 'BankSMS';
+                if (smsBody) {
+                    window.onNativeSmsReceived(smsSender, smsBody, Date.now());
+                    // Clean query params so refreshing doesn't re-trigger
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+            } catch (e) {
+                console.warn('Deep-link SMS check skipped:', e);
+            }
+        }
+
+        // ==========================================
+        // 13. INITIALIZATION ON LOAD
+        // ==========================================
+        window.onload = function () {
+            setupPWA();
+
+            if (state.theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+            updateThemeIcon();
+
+            document.getElementById('tx-date').value = '2026-10-22';
+            renderAll();
+            checkUrlDeepLinkSms();
+        };
+    </script>
+</body>
+</html>
+```

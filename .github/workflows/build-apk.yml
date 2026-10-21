@@ -19,10 +19,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 3. Set up Android SDK & Gradle
-        uses: android-actions/setup-android@v3
+      - name: 3. Accept Android SDK Licenses Automatically
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: 4. Setup Gradle Action
+      - name: 4. Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.7'
@@ -33,7 +34,11 @@ jobs:
           mkdir -p android-project/app/src/main/java/com/capttoha/finflow
           mkdir -p android-project/app/src/main/res/values
 
-          cp index.html android-project/app/src/main/assets/index.html
+          if [ -f "index.html" ]; then
+            cp index.html android-project/app/src/main/assets/index.html
+          elif [ -f "README.md" ]; then
+            cp README.md android-project/app/src/main/assets/index.html
+          fi
 
           cat << 'EOF' > android-project/settings.gradle
           pluginManagement {
@@ -187,7 +192,6 @@ jobs:
           }
           EOF
 
-          # MainActivity.kt with 30-Day ContentResolver Inbox Scanner Bridge
           cat << 'EOF' > android-project/app/src/main/java/com/capttoha/finflow/MainActivity.kt
           package com.capttoha.finflow
 

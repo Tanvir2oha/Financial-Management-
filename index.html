@@ -18,12 +18,12 @@
       backdrop-filter: blur(12px);
       border: 1px solid rgba(51, 65, 85, 0.6);
     }
-    input, select {
+    input, select, textarea {
       background-color: #1e293b !important;
       color: #f8fafc !important;
       border: 1px solid #334155 !important;
     }
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       outline: none !important;
       border-color: #10b981 !important;
     }
@@ -31,61 +31,121 @@
 </head>
 <body class="min-h-screen select-none">
 
-  <!-- Top Header (Tap Profile to Edit Photo / Name / Switch Partner) -->
+  <!-- TOP HEADER -->
   <header class="sticky top-0 z-30 glass px-4 py-3 flex items-center justify-between border-b border-slate-800">
-    <div onclick="openProfileModal()" class="flex items-center gap-3 cursor-pointer active:opacity-80">
+    <div onclick="handleHeaderProfileTap()" class="flex items-center gap-3 cursor-pointer active:opacity-80">
       <div class="relative">
-        <div id="header-avatar" class="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-slate-950 text-sm shadow-lg shadow-emerald-500/20 overflow-hidden border-2 border-emerald-400/60">
+        <div id="header-avatar" class="w-11 h-11 rounded-full bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-slate-950 text-sm shadow-lg overflow-hidden border-2 border-emerald-400/60">
           TT
         </div>
-        <span id="sync-dot" class="w-3 h-3 rounded-full bg-slate-500 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5" title="Sync Status"></span>
+        <span id="sync-dot" class="w-3 h-3 rounded-full bg-slate-500 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5"></span>
       </div>
       <div>
         <div class="flex items-center gap-1.5">
           <span id="header-subtitle" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
             Corps of EME
           </span>
-          <span class="text-[10px] text-slate-400 font-semibold">✎ Switch / Edit</span>
+          <span class="text-[10px] text-slate-400 font-semibold">✎ Profile / Photo</span>
         </div>
         <h1 id="header-name" class="text-sm font-bold text-white tracking-tight mt-0.5">Capt Tanvir Ahmed Toha</h1>
       </div>
     </div>
 
-    <button onclick="openEntryModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 shrink-0">
-      + Add Entry
-    </button>
+    <div id="header-actions"></div>
   </header>
 
-  <!-- Active Partner Bar -->
-  <div class="max-w-md mx-auto px-4 pt-3">
-    <div class="p-1.5 rounded-2xl glass grid grid-cols-2 gap-1.5">
-      <button id="switch-p1" onclick="setActivePartner('p1')" class="py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition">
-        <span id="pill-avatar-p1" class="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-[10px] font-black overflow-hidden">T</span>
-        <span id="pill-name-p1" class="truncate">Capt Toha</span>
-      </button>
-      <button id="switch-p2" onclick="setActivePartner('p2')" class="py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition">
-        <span id="pill-avatar-p2" class="w-5 h-5 rounded-full bg-pink-500 text-slate-950 flex items-center justify-center text-[10px] font-black overflow-hidden">S</span>
-        <span id="pill-name-p2" class="truncate">Saima Rahman</span>
-      </button>
-    </div>
-  </div>
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
 
-  <!-- Main Container -->
-  <main class="max-w-md mx-auto px-4 pt-3 space-y-4">
+    <!-- PARTNER EXPENSE-ONLY VIEW (SAIMA'S PHONE) -->
+    <section id="view-partner-only" class="hidden space-y-4">
 
-    <!-- VIEW 1: DASHBOARD -->
+      <!-- Smart English & Bangla SMS Paste Card -->
+      <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-pink-950/40 border border-pink-500/30 space-y-3 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-pink-400">💬 Paste English / বাংলা SMS</h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Auto-extracts amounts from bKash, Nagad & Bank alerts</p>
+          </div>
+          <button type="button" onclick="pasteFromClipboard('partner-sms-box')" class="px-3 py-1.5 rounded-xl bg-pink-500/20 text-pink-300 border border-pink-500/40 text-[11px] font-bold active:scale-95">
+            📋 Paste SMS
+          </button>
+        </div>
+
+        <textarea id="partner-sms-box" rows="2.5" oninput="parsePartnerSmsLive()" placeholder="Paste SMS here (e.g. Payment Tk 1,250 successful OR সফল হয়েছে ৳৫০০...)" class="w-full p-3 rounded-xl text-xs leading-relaxed"></textarea>
+        <div id="sms-parse-feedback" class="hidden text-[11px] font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-2 rounded-lg"></div>
+      </div>
+
+      <!-- Manual Expenditure Logger -->
+      <div class="p-4 rounded-2xl glass space-y-3.5 border border-slate-800">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-300">✍️ Log Daily Expenditure</h2>
+          <span class="text-[10px] text-emerald-400 font-semibold">Auto-Syncs</span>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-slate-400 font-semibold">Expense Amount (BDT ৳)</label>
+          <input id="p-amount" type="number" step="any" placeholder="e.g. 1200" class="w-full px-3.5 py-3 rounded-xl text-lg font-black mt-1" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] text-slate-400 font-semibold">Category</label>
+            <select id="p-category" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1"></select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 font-semibold">Date</label>
+            <input id="p-date" type="date" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-slate-400 font-semibold">Item / Shop / Note</label>
+          <input id="p-note" type="text" placeholder="e.g. Groceries, Bazar, Medicine" class="w-full px-3.5 py-2.5 rounded-xl text-xs mt-1" />
+        </div>
+
+        <button onclick="submitPartnerExpense()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 active:opacity-90 text-slate-950 font-black text-sm shadow-lg shadow-pink-500/20">
+          ✓ Save & Sync Expenditure
+        </button>
+      </div>
+
+      <!-- Partner's Recent Sent Entries -->
+      <div class="p-4 rounded-2xl glass space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">My Recently Sent Entries</h3>
+          <button onclick="connectAndSyncCloud(false)" class="text-[11px] text-emerald-400 font-semibold">↻ Refresh</button>
+        </div>
+        <div id="partner-own-list" class="space-y-2"></div>
+      </div>
+
+      <!-- Cloud Link Box -->
+      <div class="p-3.5 rounded-2xl glass space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-400">Cloud Sync Link</span>
+          <span id="p-sync-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Not Linked</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="p-sync-code-input" type="text" placeholder="Enter Family Sync Code..." class="flex-1 px-3 py-2 rounded-xl text-xs font-mono" />
+          <button onclick="linkPartnerSyncCode()" class="px-3.5 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shrink-0">
+            Link
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
     <section id="view-dashboard" class="space-y-4">
-      <!-- Net Balance Hero Card -->
       <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/60 border border-emerald-500/30 shadow-xl">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Joint Family Net Balance</span>
+          <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Available Net Balance</span>
           <span id="dash-month-label" class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full"></span>
         </div>
         <div id="kpi-net" class="text-3xl font-black text-white mt-1.5 tracking-tight">৳0</div>
 
         <div class="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-slate-800/80">
           <div>
-            <div class="text-[11px] text-slate-400">Total Income</div>
+            <div class="text-[11px] text-slate-400">Income</div>
             <div id="kpi-income" class="text-sm font-bold text-emerald-400 mt-0.5">৳0</div>
           </div>
           <div>
@@ -98,14 +158,12 @@
           </div>
         </div>
 
-        <!-- Partner Contribution Split -->
         <div class="mt-3 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-300">
-          <span id="split-p1">Toha Spent: ৳0</span>
-          <span id="split-p2">Saima Spent: ৳0</span>
+          <span id="split-p1">My Spend: ৳0</span>
+          <span id="split-p2" class="text-pink-300 font-semibold">Partner Spend: ৳0</span>
         </div>
       </div>
 
-      <!-- Quick Action Pills -->
       <div class="grid grid-cols-2 gap-2.5">
         <button onclick="openEntryModal('expense')" class="p-3 rounded-xl glass flex items-center justify-center gap-2 active:scale-95 transition">
           <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
@@ -117,7 +175,6 @@
         </button>
       </div>
 
-      <!-- Category Breakdown -->
       <div class="p-4 rounded-2xl glass space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">This Month's Spending</h2>
@@ -126,25 +183,24 @@
         <div id="category-bars" class="space-y-3"></div>
       </div>
 
-      <!-- Recent Transactions -->
       <div class="p-4 rounded-2xl glass space-y-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Recent Family Entries</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">All Recent Transactions</h2>
           <button onclick="switchTab('ledger')" class="text-xs text-emerald-400 font-semibold">See All →</button>
         </div>
         <div id="recent-list" class="space-y-2.5"></div>
       </div>
     </section>
 
-    <!-- VIEW 2: FULL LEDGER -->
+    <!-- FULL LEDGER -->
     <section id="view-ledger" class="hidden space-y-3">
       <div class="p-3.5 rounded-2xl glass space-y-2.5">
         <input id="search-input" type="text" oninput="renderAll()" placeholder="Search note or category..." class="w-full px-3.5 py-2.5 rounded-xl text-xs" />
         <div class="grid grid-cols-3 gap-2">
           <select id="filter-owner" onchange="renderAll()" class="px-2.5 py-2 rounded-xl text-xs">
             <option value="all">Both Partners</option>
-            <option value="p1" id="filter-owner-p1">Partner 1</option>
-            <option value="p2" id="filter-owner-p2">Partner 2</option>
+            <option value="p1" id="filter-owner-p1">Capt Toha</option>
+            <option value="p2" id="filter-owner-p2">Saima</option>
           </select>
           <select id="filter-type" onchange="renderAll()" class="px-2.5 py-2 rounded-xl text-xs">
             <option value="all">All Types</option>
@@ -160,7 +216,7 @@
       <div id="full-ledger-list" class="space-y-2"></div>
     </section>
 
-    <!-- VIEW 3: BUDGETS & GOALS -->
+    <!-- BUDGETS & GOALS -->
     <section id="view-budgets" class="hidden space-y-4">
       <div class="p-4 rounded-2xl glass space-y-3">
         <div class="flex items-center justify-between">
@@ -172,58 +228,56 @@
 
       <div class="p-4 rounded-2xl glass space-y-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Family Savings Goals</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Savings & Target Goals</h2>
           <button onclick="addNewGoal()" class="text-xs font-bold text-emerald-400">+ New Goal</button>
         </div>
         <div id="goals-list" class="space-y-3"></div>
       </div>
     </section>
 
-    <!-- VIEW 4: TWO-PHONE CLOUD SYNC & BACKUP -->
+    <!-- SYNC & LOCK SETTINGS -->
     <section id="view-sync" class="hidden space-y-4">
+      <div class="p-4 rounded-2xl bg-gradient-to-br from-pink-950/40 to-slate-900 border border-pink-500/40 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold text-pink-300">🔒 Partner Expense-Only Mode</h2>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300">PIN Protected</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Lock this phone into Partner Mode for Saima so balances stay hidden. Admin view requires PIN (<strong id="display-current-pin">2020</strong>).
+        </p>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="activatePartnerLockMode()" class="py-2.5 rounded-xl bg-pink-500 text-slate-950 font-black text-xs">
+            🔒 Lock to Partner Mode
+          </button>
+          <button onclick="changeAdminPin()" class="py-2.5 rounded-xl bg-slate-800 text-slate-200 font-bold text-xs border border-slate-700">
+            🔑 Change Admin PIN
+          </button>
+        </div>
+      </div>
+
       <div class="p-4 rounded-2xl glass space-y-3 border border-emerald-500/30">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-bold text-white">Two-Phone Live Family Sync</h2>
+          <h2 class="text-sm font-bold text-white">Two-Phone Cloud Sync</h2>
           <span id="sync-status-badge" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400">Offline Mode</span>
         </div>
         <p class="text-xs text-slate-400 leading-relaxed">
-          Sync entries, budgets, and profile names between your phone and your wife's phone automatically over the internet.
+          Generate a Sync Code here and paste it on your wife's phone so her logged expenses appear on your dashboard automatically.
         </p>
-
-        <!-- Option A: 1-Tap Instant Cloud Sync Code -->
-        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
-          <div class="text-xs font-bold text-emerald-400">Step 1: Generate or Enter Family Sync Code</div>
-          <p class="text-[11px] text-slate-400">
-            Tap <strong>Create New Code</strong> on Phone 1, then type that exact code on Phone 2 and tap <strong>Link & Sync Now</strong>.
-          </p>
-          <input id="sync-code-input" type="text" placeholder="Paste Family Sync Code or Firebase URL..." class="w-full px-3 py-2.5 rounded-xl text-xs font-mono" />
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="createNewCloudRoom()" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold text-xs border border-emerald-500/30">
-              ✨ Create New Code
-            </button>
-            <button onclick="connectAndSyncCloud(true)" class="py-2.5 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-black text-xs">
-              🔄 Link & Sync Now
-            </button>
-          </div>
-          <div class="flex items-center justify-between pt-1">
-            <span id="last-synced-text" class="text-[10px] text-slate-500">Not synced yet</span>
-            <button onclick="copySyncCode()" class="text-[11px] text-sky-400 font-semibold">Copy Code 📋</button>
-          </div>
+        <input id="sync-code-input" type="text" placeholder="Paste Family Sync Code..." class="w-full px-3 py-2.5 rounded-xl text-xs font-mono" />
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="createNewCloudRoom()" class="py-2.5 rounded-xl bg-slate-800 text-emerald-400 font-bold text-xs border border-emerald-500/30">
+            ✨ Create New Code
+          </button>
+          <button onclick="connectAndSyncCloud(true)" class="py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs">
+            🔄 Link & Sync Now
+          </button>
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <span id="last-synced-text" class="text-[10px] text-slate-500">Not synced yet</span>
+          <button onclick="copySyncCode()" class="text-[11px] text-sky-400 font-semibold">Copy Code 📋</button>
         </div>
       </div>
 
-      <!-- Profile Customization Card shortcut -->
-      <div class="p-4 rounded-2xl glass flex items-center justify-between">
-        <div>
-          <h3 class="text-xs font-bold text-white">Edit Names, Details & Profile Photos</h3>
-          <p class="text-[11px] text-slate-400">Customize Partner 1 & Partner 2 profiles</p>
-        </div>
-        <button onclick="openProfileModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
-          Edit Profiles
-        </button>
-      </div>
-
-      <!-- Offline Backup Card -->
       <div class="p-4 rounded-2xl glass space-y-2.5">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Excel & File Backups</h2>
         <button onclick="exportCSV()" class="w-full py-3 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs">
@@ -243,137 +297,112 @@
 
   </main>
 
-  <!-- MODAL 1: PROFILE & PARTNER SETTINGS (Photos, Names, Subtitles) -->
+  <!-- MODAL 1: PROFILE & PHOTO CUSTOMIZATION (FIXED GALLERY PICKER) -->
   <div id="profile-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white">Family Profiles & Photos</h3>
+        <h3 class="text-base font-bold text-white">Customize Profile & Photo</h3>
         <button onclick="closeProfileModal()" class="text-slate-400 text-sm font-bold px-2 py-1">✕</button>
       </div>
 
-      <!-- Partner 1 Editor -->
-      <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Partner 1 Profile</span>
-          <button onclick="setActivePartner('p1'); closeProfileModal();" class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-lg font-bold">Use on This Phone</button>
-        </div>
+      <div id="modal-prof-p1" class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Admin Profile (Your Details)</span>
         <div class="flex items-center gap-3">
           <div id="preview-avatar-p1" class="w-14 h-14 rounded-full bg-emerald-600 text-slate-950 font-black flex items-center justify-center text-base overflow-hidden shrink-0 border-2 border-emerald-400">
             TT
           </div>
           <div class="flex-1 space-y-1.5">
-            <label class="inline-block px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-emerald-400 border border-slate-700 cursor-pointer">
-              📷 Choose Photo from Phone
-              <input type="file" accept="image/*" onchange="handlePhotoUpload(event, 'p1')" class="hidden" />
+            <label class="inline-block px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-emerald-400 border border-slate-700 cursor-pointer text-center">
+              📷 Choose from Gallery
+              <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(event, 'p1')" class="hidden" />
             </label>
-            <button onclick="removePhoto('p1')" class="block text-[10px] text-slate-400 hover:text-rose-400">Remove Photo</button>
+            <button onclick="removePhoto('p1')" class="block text-[10px] text-slate-400">Remove Photo</button>
           </div>
         </div>
-        <div class="grid grid-cols-1 gap-2">
-          <div>
-            <label class="text-[10px] text-slate-400 font-semibold">Full Name</label>
-            <input id="edit-name-p1" type="text" placeholder="e.g. Capt Tanvir Ahmed Toha" class="w-full px-3 py-2 rounded-xl text-xs font-bold mt-0.5" />
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400 font-semibold">Rank / Subtitle / Details</label>
-            <input id="edit-sub-p1" type="text" placeholder="e.g. Corps of EME • BD Army" class="w-full px-3 py-2 rounded-xl text-xs mt-0.5" />
-          </div>
+        <div class="space-y-2">
+          <input id="edit-name-p1" type="text" placeholder="Full Name" class="w-full px-3 py-2 rounded-xl text-xs font-bold" />
+          <input id="edit-sub-p1" type="text" placeholder="Subtitle / Rank" class="w-full px-3 py-2 rounded-xl text-xs" />
         </div>
       </div>
 
-      <!-- Partner 2 Editor -->
-      <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-pink-400 uppercase tracking-wider">Partner 2 (Spouse) Profile</span>
-          <button onclick="setActivePartner('p2'); closeProfileModal();" class="text-[11px] bg-pink-500/20 text-pink-300 px-2.5 py-1 rounded-lg font-bold">Use on This Phone</button>
-        </div>
+      <div id="modal-prof-p2" class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+        <span class="text-xs font-bold text-pink-400 uppercase tracking-wider">Partner Profile (Wife's Details)</span>
         <div class="flex items-center gap-3">
           <div id="preview-avatar-p2" class="w-14 h-14 rounded-full bg-pink-500 text-slate-950 font-black flex items-center justify-center text-base overflow-hidden shrink-0 border-2 border-pink-400">
             SR
           </div>
           <div class="flex-1 space-y-1.5">
-            <label class="inline-block px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-pink-400 border border-slate-700 cursor-pointer">
-              📷 Choose Photo from Phone
-              <input type="file" accept="image/*" onchange="handlePhotoUpload(event, 'p2')" class="hidden" />
+            <label class="inline-block px-3 py-2 rounded-xl bg-slate-800 text-xs font-bold text-pink-400 border border-slate-700 cursor-pointer text-center">
+              📷 Choose from Gallery
+              <input type="file" accept="image/*" capture="environment" onchange="handlePhotoUpload(event, 'p2')" class="hidden" />
             </label>
-            <button onclick="removePhoto('p2')" class="block text-[10px] text-slate-400 hover:text-rose-400">Remove Photo</button>
+            <button onclick="removePhoto('p2')" class="block text-[10px] text-slate-400">Remove Photo</button>
           </div>
         </div>
-        <div class="grid grid-cols-1 gap-2">
-          <div>
-            <label class="text-[10px] text-slate-400 font-semibold">Full Name</label>
-            <input id="edit-name-p2" type="text" placeholder="e.g. Saima Rahman" class="w-full px-3 py-2 rounded-xl text-xs font-bold mt-0.5" />
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400 font-semibold">Subtitle / Details</label>
-            <input id="edit-sub-p2" type="text" placeholder="e.g. Family & Home Partner" class="w-full px-3 py-2 rounded-xl text-xs mt-0.5" />
-          </div>
+        <div class="space-y-2">
+          <input id="edit-name-p2" type="text" placeholder="Full Name" class="w-full px-3 py-2 rounded-xl text-xs font-bold" />
+          <input id="edit-sub-p2" type="text" placeholder="Subtitle / Details" class="w-full px-3 py-2 rounded-xl text-xs" />
         </div>
       </div>
 
-      <button onclick="saveProfileDetails()" class="w-full py-3.5 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20">
+      <button onclick="saveProfileDetails()" class="w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm">
         Save Profile Changes
       </button>
     </div>
   </div>
 
-  <!-- MODAL 2: ADD / EDIT TRANSACTION -->
+  <!-- MODAL 2: ADMIN ADD / EDIT TRANSACTION -->
   <div id="entry-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4">
+    <div class="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-3.5">
       <div class="flex items-center justify-between">
         <h3 id="modal-title" class="text-base font-bold text-white">Add Financial Entry</h3>
         <button onclick="closeEntryModal()" class="text-slate-400 text-sm font-bold px-2 py-1">✕</button>
       </div>
 
+      <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
+        <textarea id="admin-sms-box" rows="1" oninput="parseAdminSmsLive()" placeholder="Paste SMS (English / বাংলা)..." class="w-full p-2 rounded-lg text-[11px]"></textarea>
+        <button type="button" onclick="pasteFromClipboard('admin-sms-box')" class="px-2 py-1 bg-slate-800 text-emerald-400 text-[10px] font-bold rounded shrink-0">Paste</button>
+      </div>
+
       <input type="hidden" id="entry-id" />
 
-      <!-- Type Selector -->
       <div class="grid grid-cols-3 gap-2">
-        <button type="button" id="btn-type-expense" onclick="setEntryType('expense')" class="py-2.5 rounded-xl text-xs font-bold border">Expense</button>
-        <button type="button" id="btn-type-income" onclick="setEntryType('income')" class="py-2.5 rounded-xl text-xs font-bold border">Income</button>
-        <button type="button" id="btn-type-investment" onclick="setEntryType('investment')" class="py-2.5 rounded-xl text-xs font-bold border">Savings/DPS</button>
+        <button type="button" id="btn-type-expense" onclick="setEntryType('expense')" class="py-2 rounded-xl text-xs font-bold border">Expense</button>
+        <button type="button" id="btn-type-income" onclick="setEntryType('income')" class="py-2 rounded-xl text-xs font-bold border">Income</button>
+        <button type="button" id="btn-type-investment" onclick="setEntryType('investment')" class="py-2 rounded-xl text-xs font-bold border">Savings/DPS</button>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-2.5">
         <div>
           <label class="text-[11px] text-slate-400 font-semibold">Amount (BDT ৳)</label>
-          <input id="entry-amount" type="number" step="any" placeholder="e.g. 2500" class="w-full px-3.5 py-2.5 rounded-xl text-base font-bold mt-1" />
+          <input id="entry-amount" type="number" step="any" placeholder="e.g. 2500" class="w-full px-3.5 py-2.5 rounded-xl text-base font-bold mt-0.5" />
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5">
+        <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="text-[11px] text-slate-400 font-semibold">Category</label>
-            <select id="entry-category" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1"></select>
+            <select id="entry-category" class="w-full px-3 py-2 rounded-xl text-xs mt-0.5"></select>
           </div>
           <div>
-            <label class="text-[11px] text-slate-400 font-semibold">Logged By</label>
-            <select id="entry-owner" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1">
-              <option value="p1" id="opt-owner-p1">Capt Tanvir Ahmed Toha</option>
-              <option value="p2" id="opt-owner-p2">Saima Rahman</option>
-            </select>
+            <label class="text-[11px] text-slate-400 font-semibold">Date</label>
+            <input id="entry-date" type="date" class="w-full px-3 py-2 rounded-xl text-xs mt-0.5" />
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5">
-          <div>
-            <label class="text-[11px] text-slate-400 font-semibold">Date</label>
-            <input id="entry-date" type="date" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1" />
-          </div>
-          <div>
-            <label class="text-[11px] text-slate-400 font-semibold">Description / Note</label>
-            <input id="entry-note" type="text" placeholder="e.g. CSD / Mess / Bazar" class="w-full px-3 py-2.5 rounded-xl text-xs mt-1" />
-          </div>
+        <div>
+          <label class="text-[11px] text-slate-400 font-semibold">Description / Note</label>
+          <input id="entry-note" type="text" placeholder="e.g. Mess Bill / Fuel / CSD" class="w-full px-3 py-2 rounded-xl text-xs mt-0.5" />
         </div>
       </div>
 
-      <button onclick="saveEntry()" class="w-full py-3.5 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20">
+      <button onclick="saveEntry()" class="w-full py-3.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-sm">
         Save & Sync Entry
       </button>
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
-  <nav class="fixed bottom-0 inset-x-0 z-40 glass border-t border-slate-800 px-2 py-2">
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav id="admin-bottom-nav" class="fixed bottom-0 inset-x-0 z-40 glass border-t border-slate-800 px-2 py-2">
     <div class="max-w-md mx-auto grid grid-cols-4 gap-1">
       <button onclick="switchTab('dashboard')" id="nav-dashboard" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-emerald-400 font-bold">
         <span class="text-base">🏠</span>
@@ -389,66 +418,72 @@
       </button>
       <button onclick="switchTab('sync')" id="nav-sync" class="py-1.5 rounded-xl flex flex-col items-center gap-0.5 text-slate-400 font-medium">
         <span class="text-base">☁️</span>
-        <span class="text-[10px]">Sync</span>
+        <span class="text-[10px]">Sync / Lock</span>
       </button>
     </div>
   </nav>
 
   <script>
-    const STORAGE_KEY = 'capt_toha_family_fin_v2';
-    const DEVICE_PARTNER_KEY = 'capt_toha_active_partner';
+    const STORAGE_KEY = 'capt_toha_family_fin_v4';
+    const DEVICE_ROLE_KEY = 'capt_toha_device_role';
+    const ADMIN_PIN_KEY = 'capt_toha_admin_pin';
     const SYNC_CODE_KEY = 'capt_toha_sync_code';
 
     const CATEGORIES = [
-      'Pay & Allowances',
-      'Mess Bill & Cantt',
       'Groceries & CSD',
-      'Vehicle & Fuel',
       'Home & Kitchen',
+      'Shopping & Personal',
+      'Medicine & Health',
+      'Mess Bill & Cantt',
+      'Vehicle & Fuel',
       'Family & Remittance',
       'Utilities & Internet',
+      'Pay & Allowances',
       'Savings / DPS / Trust',
+      'Miscellaneous'
+    ];
+
+    const PARTNER_CATEGORIES = [
+      'Groceries & CSD',
+      'Home & Kitchen',
       'Shopping & Personal',
+      'Medicine & Health',
+      'Utilities & Internet',
+      'Family & Kids',
       'Miscellaneous'
     ];
 
     const DEFAULT_STATE = {
       updatedAt: Date.now(),
       profiles: {
-        p1: {
-          name: 'Capt Tanvir Ahmed Toha',
-          subtitle: 'Corps of EME',
-          photo: ''
-        },
-        p2: {
-          name: 'Saima Rahman',
-          subtitle: 'Family Partner',
-          photo: ''
-        }
+        p1: { name: 'Capt Tanvir Ahmed Toha', subtitle: 'Corps of EME', photo: '' },
+        p2: { name: 'Saima Rahman', subtitle: 'Expense Logger', photo: '' }
       },
       transactions: [
         { id: 't1', type: 'income', amount: 82500, category: 'Pay & Allowances', owner: 'p1', date: new Date().toISOString().slice(0, 10), note: 'Monthly Pay & Allowances', updatedAt: Date.now() },
         { id: 't2', type: 'expense', amount: 4500, category: 'Mess Bill & Cantt', owner: 'p1', date: new Date().toISOString().slice(0, 10), note: 'Officers Mess Bill', updatedAt: Date.now() },
-        { id: 't3', type: 'expense', amount: 5800, category: 'Groceries & CSD', owner: 'p2', date: new Date().toISOString().slice(0, 10), note: 'Monthly CSD & Home Groceries', updatedAt: Date.now() },
+        { id: 't3', type: 'expense', amount: 2400, category: 'Groceries & CSD', owner: 'p2', date: new Date().toISOString().slice(0, 10), note: 'Home Bazar & Groceries', updatedAt: Date.now() },
         { id: 't4', type: 'investment', amount: 15000, category: 'Savings / DPS / Trust', owner: 'p1', date: new Date().toISOString().slice(0, 10), note: 'Trust Bank Monthly DPS', updatedAt: Date.now() }
       ],
       budgets: {
-        'Mess Bill & Cantt': 8000,
         'Groceries & CSD': 16000,
-        'Vehicle & Fuel': 12000,
         'Home & Kitchen': 10000,
+        'Shopping & Personal': 8000,
+        'Mess Bill & Cantt': 8000,
+        'Vehicle & Fuel': 12000,
         'Family & Remittance': 20000,
-        'Utilities & Internet': 5000,
-        'Shopping & Personal': 8000
+        'Utilities & Internet': 5000
       },
       goals: [
         { id: 'g1', name: 'Family Emergency Reserve', current: 185000, target: 300000 },
-        { id: 'g2', name: 'Car & Future Investment Fund', current: 95000, target: 200000 }
+        { id: 'g2', name: 'Future Investment Fund', current: 95000, target: 200000 }
       ]
     };
 
     let state = loadState();
-    let activePartner = localStorage.getItem(DEVICE_PARTNER_KEY) || 'p1';
+    let deviceRole = localStorage.getItem(DEVICE_ROLE_KEY) || 'admin';
+    let adminPin = localStorage.getItem(ADMIN_PIN_KEY) || '2020';
+    let currentAdminTab = 'dashboard';
     let currentEntryType = 'expense';
     let syncCode = localStorage.getItem(SYNC_CODE_KEY) || '';
 
@@ -468,9 +503,7 @@
       state.updatedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       renderAll();
-      if (pushToCloud && syncCode) {
-        pushStateToCloud();
-      }
+      if (pushToCloud && syncCode) pushStateToCloud();
     }
 
     function fmt(num) {
@@ -481,21 +514,200 @@
       return (name || 'U').split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
     }
 
-    function renderAvatarContent(profile, fallbackColorClass = '') {
+    function renderAvatarContent(profile) {
       if (profile.photo) {
         return `<img src="${profile.photo}" class="w-full h-full object-cover" alt="${profile.name}" />`;
       }
       return `<span>${getInitials(profile.name)}</span>`;
     }
 
-    function setActivePartner(pKey) {
-      activePartner = pKey;
-      localStorage.setItem(DEVICE_PARTNER_KEY, pKey);
+    // =========================================================================
+    // BILINGUAL (ENGLISH & BANGLA) SMS PARSER
+    // =========================================================================
+    function parseBanglaDigitsToEnglish(str) {
+      if (!str) return '';
+      const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return str.replace(/[০-৯]/g, d => bengaliDigits.indexOf(d));
+    }
+
+    function extractSmsDetails(text) {
+      if (!text || text.trim().length < 3) return null;
+      let cleanText = parseBanglaDigitsToEnglish(text);
+
+      // Remove balance/fee chunks
+      const cleaned = cleanText
+        .replace(/(?:avl\.?\s*bal(?:ance)?|bal(?:ance)?|new\s*bal|current\s*bal|fee|charge|vat|ব্যালেন্স|অবশিষ্ট)\s*(?:is|:)?\s*(?:bdt|tk|taka|৳|\.)?\s*[\d,]+(?:\.\d{1,2})?/gi, ' ');
+
+      // Match amounts with BDT, Tk, Taka, or ৳ symbol (English or converted Bangla digits)
+      const amtMatch = cleaned.match(/(?:bdt|tk|taka|৳|amount|paid|debited|credited|received|send\s*money|cash\s*out|payment|টাকা|প্রদান|ডেবিট|ক্রেডিট|সফল)\s*(?:of|:)?\s*(?:bdt|tk|taka|৳)?\s*([\d,]+(?:\.\d{1,2})?)/i)
+                    || cleaned.match(/([\d,]+(?:\.\d{1,2})?)\s*(?:bdt|tk|taka|৳)/i);
+
+      if (!amtMatch) return null;
+      const amount = parseFloat(amtMatch[1].replace(/,/g, ''));
+      if (!amount || amount <= 0) return null;
+
+      const lower = text.toLowerCase();
+      let type = 'expense';
+      if (/(credited|received|cash\s*in|salary|deposit|জমা|পাওয়া|প্রাপ্ত)/i.test(lower) && !/(debited|paid|payment|cash\s*out|purchase|প্রদান|খরচ)/i.test(lower)) {
+        type = 'income';
+      }
+
+      // Extract Merchant / Description
+      let note = 'SMS Entry';
+      const merchMatch = text.match(/(?:to|at|from|for|প্রতি|বরাবর|তে)\s+([A-Za-z0-9\s._&-\u0980-\u09FF]{3,28}?)(?:\s+on|\s+successful|\s+trxid|\s+ref|\s+fee|\s+bal|\.|$)/i);
+      if (merchMatch && merchMatch[1]) {
+        note = merchMatch[1].trim();
+      } else if (/bkash|বিকাশ/i.test(lower)) {
+        note = 'bKash Transaction';
+      } else if (/nagad|নগদ/i.test(lower)) {
+        note = 'Nagad Transaction';
+      } else if (/city|amex/i.test(lower)) {
+        note = 'City Bank / Card Spend';
+      } else if (/tbl|trust/i.test(lower)) {
+        note = 'Trust Bank Transaction';
+      }
+
+      // Category Guesser
+      let category = 'Groceries & CSD';
+      if (/csd|swapno|agora|meena|bazar|mart|grocery|food|বাজার/i.test(lower)) category = 'Groceries & CSD';
+      else if (/pharma|med|hosp|clinic|lab|drug|ওষুধ|মেডিসিন/i.test(lower)) category = 'Medicine & Health';
+      else if (/aarong|apex|bata|shop|mall|cloth|fashion/i.test(lower)) category = 'Shopping & Personal';
+      else if (/desco|dpdc|wasa|gas|titas|internet|isp|bill|বিদ্যুৎ|ওয়াসা|গ্যাস/i.test(lower)) category = 'Utilities & Internet';
+      else if (/mess|cantt|মেস/i.test(lower)) category = 'Mess Bill & Cantt';
+      else if (/fuel|octane|petrol|cng|pump|অকটেন|তেল/i.test(lower)) category = 'Vehicle & Fuel';
+      else if (type === 'income') category = 'Pay & Allowances';
+
+      return { amount, type, note, category };
+    }
+
+    async function pasteFromClipboard(targetId) {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById(targetId).value = text;
+          if (targetId === 'partner-sms-box') parsePartnerSmsLive();
+          else parseAdminSmsLive();
+        } else {
+          alert('Clipboard is empty. Long-press inside the box and tap Paste.');
+        }
+      } catch (e) {
+        alert('Long-press inside the box and tap Paste.');
+      }
+    }
+
+    function parsePartnerSmsLive() {
+      const raw = document.getElementById('partner-sms-box').value;
+      const fb = document.getElementById('sms-parse-feedback');
+      const parsed = extractSmsDetails(raw);
+      if (!parsed) {
+        fb.classList.add('hidden');
+        return;
+      }
+      document.getElementById('p-amount').value = parsed.amount;
+      document.getElementById('p-note').value = parsed.note;
+      if (PARTNER_CATEGORIES.includes(parsed.category)) {
+        document.getElementById('p-category').value = parsed.category;
+      }
+      fb.textContent = `✓ Auto-detected ৳${parsed.amount.toLocaleString()} (${parsed.note}) — Tap Save below!`;
+      fb.classList.remove('hidden');
+    }
+
+    function parseAdminSmsLive() {
+      const raw = document.getElementById('admin-sms-box').value;
+      const parsed = extractSmsDetails(raw);
+      if (!parsed) return;
+      setEntryType(parsed.type);
+      document.getElementById('entry-amount').value = parsed.amount;
+      document.getElementById('entry-note').value = parsed.note;
+      if (CATEGORIES.includes(parsed.category)) {
+        document.getElementById('entry-category').value = parsed.category;
+      }
+    }
+
+    // =========================================================================
+    // PARTNER EXPENSE SUBMISSION
+    // =========================================================================
+    function submitPartnerExpense() {
+      const amount = parseFloat(document.getElementById('p-amount').value);
+      const category = document.getElementById('p-category').value || 'Groceries & CSD';
+      const date = document.getElementById('p-date').value || new Date().toISOString().slice(0, 10);
+      const note = document.getElementById('p-note').value.trim() || category;
+
+      if (!amount || amount <= 0) {
+        alert('Please enter the expenditure amount or paste an SMS.');
+        return;
+      }
+
+      state.transactions.unshift({
+        id: 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        type: 'expense',
+        amount,
+        category,
+        owner: 'p2',
+        date,
+        note,
+        updatedAt: Date.now()
+      });
+
+      document.getElementById('p-amount').value = '';
+      document.getElementById('p-note').value = '';
+      document.getElementById('partner-sms-box').value = '';
+      document.getElementById('sms-parse-feedback').classList.add('hidden');
+
+      saveState(true);
+      alert('✓ Expenditure saved and synced!');
+    }
+
+    function linkPartnerSyncCode() {
+      const val = document.getElementById('p-sync-code-input').value.trim();
+      if (!val) return alert('Please enter the Family Sync Code from Capt Toha\'s phone.');
+      syncCode = val;
+      localStorage.setItem(SYNC_CODE_KEY, syncCode);
+      connectAndSyncCloud(true);
+    }
+
+    // =========================================================================
+    // DEVICE ROLE LOCK & PIN
+    // =========================================================================
+    function activatePartnerLockMode() {
+      if (!confirm(`Lock this phone into Partner Expense-Only Mode for ${state.profiles.p2.name}?\n\nBalances and funds will be hidden. You will need PIN (${adminPin}) to unlock Admin view.`)) return;
+      deviceRole = 'partner';
+      localStorage.setItem(DEVICE_ROLE_KEY, 'partner');
       renderAll();
     }
 
-    // PROFILE & PHOTO MANAGEMENT
+    function unlockAdminModePrompt() {
+      const entered = prompt('Enter 4-Digit Admin PIN to unlock full dashboard:');
+      if (entered === null) return;
+      if (entered.trim() === adminPin) {
+        deviceRole = 'admin';
+        localStorage.setItem(DEVICE_ROLE_KEY, 'admin');
+        renderAll();
+      } else {
+        alert('Incorrect Admin PIN.');
+      }
+    }
+
+    function changeAdminPin() {
+      const next = prompt('Enter new 4-digit Admin PIN:', adminPin);
+      if (next && next.trim().length >= 4) {
+        adminPin = next.trim();
+        localStorage.setItem(ADMIN_PIN_KEY, adminPin);
+        renderAll();
+        alert('Admin PIN updated to: ' + adminPin);
+      }
+    }
+
+    // =========================================================================
+    // PROFILE & FIXED PHOTO UPLOAD
+    // =========================================================================
+    function handleHeaderProfileTap() {
+      openProfileModal();
+    }
+
     function openProfileModal() {
+      document.getElementById('modal-prof-p1').classList.toggle('hidden', deviceRole === 'partner');
+
       document.getElementById('edit-name-p1').value = state.profiles.p1.name;
       document.getElementById('edit-sub-p1').value = state.profiles.p1.subtitle;
       document.getElementById('preview-avatar-p1').innerHTML = renderAvatarContent(state.profiles.p1);
@@ -520,7 +732,6 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          // Compress & square-crop to 160x160 so it stores & syncs rapidly
           const canvas = document.createElement('canvas');
           const size = 160;
           canvas.width = size;
@@ -530,8 +741,7 @@
           const sx = (img.width - minSide) / 2;
           const sy = (img.height - minSide) / 2;
           ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          state.profiles[partnerKey].photo = dataUrl;
+          state.profiles[partnerKey].photo = canvas.toDataURL('image/jpeg', 0.82);
           document.getElementById('preview-avatar-' + partnerKey).innerHTML = renderAvatarContent(state.profiles[partnerKey]);
         };
         img.src = e.target.result;
@@ -545,28 +755,29 @@
     }
 
     function saveProfileDetails() {
-      state.profiles.p1.name = document.getElementById('edit-name-p1').value.trim() || 'Partner 1';
-      state.profiles.p1.subtitle = document.getElementById('edit-sub-p1').value.trim() || 'Partner 1';
-      state.profiles.p2.name = document.getElementById('edit-name-p2').value.trim() || 'Partner 2';
-      state.profiles.p2.subtitle = document.getElementById('edit-sub-p2').value.trim() || 'Partner 2';
+      if (deviceRole === 'admin') {
+        state.profiles.p1.name = document.getElementById('edit-name-p1').value.trim() || 'Capt Tanvir Ahmed Toha';
+        state.profiles.p1.subtitle = document.getElementById('edit-sub-p1').value.trim() || 'Corps of EME';
+      }
+      state.profiles.p2.name = document.getElementById('edit-name-p2').value.trim() || 'Saima Rahman';
+      state.profiles.p2.subtitle = document.getElementById('edit-sub-p2').value.trim() || 'Expense Logger';
       closeProfileModal();
       saveState(true);
     }
 
-    // NAVIGATION & MODALS
+    // =========================================================================
+    // ADMIN NAVIGATION & CRUD
+    // =========================================================================
     function populateCategoryDropdowns() {
-      const entryCat = document.getElementById('entry-category');
-      const filterCat = document.getElementById('filter-cat');
-      entryCat.innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
-      filterCat.innerHTML = `<option value="all">All Categories</option>` + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('entry-category').innerHTML = CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('filter-cat').innerHTML = `<option value="all">All Categories</option>` + CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('p-category').innerHTML = PARTNER_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('p-date').value = new Date().toISOString().slice(0, 10);
     }
 
     function switchTab(tab) {
-      ['dashboard', 'ledger', 'budgets', 'sync'].forEach(t => {
-        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
-        const nav = document.getElementById('nav-' + t);
-        nav.className = 'py-1.5 rounded-xl flex flex-col items-center gap-0.5 ' + (t === tab ? 'text-emerald-400 font-bold' : 'text-slate-400 font-medium');
-      });
+      currentAdminTab = tab;
+      renderAll();
     }
 
     function setEntryType(type) {
@@ -578,21 +789,19 @@
       };
       ['expense', 'income', 'investment'].forEach(t => {
         const btn = document.getElementById('btn-type-' + t);
-        btn.className = 'py-2.5 rounded-xl text-xs font-bold border ' + (t === type ? styles[t] : 'border-slate-700 text-slate-400 bg-slate-800/60');
+        btn.className = 'py-2 rounded-xl text-xs font-bold border ' + (t === type ? styles[t] : 'border-slate-700 text-slate-400 bg-slate-800/60');
       });
 
       const catSelect = document.getElementById('entry-category');
       if (type === 'income') catSelect.value = 'Pay & Allowances';
       else if (type === 'investment') catSelect.value = 'Savings / DPS / Trust';
-      else if (catSelect.value === 'Pay & Allowances') catSelect.value = 'Groceries & CSD';
+      else if (catSelect.value === 'Pay & Allowances') catSelect.value = 'Mess Bill & Cantt';
     }
 
     function openEntryModal(defaultType = 'expense', editId = null) {
       document.getElementById('entry-modal').classList.remove('hidden');
       document.getElementById('entry-modal').classList.add('flex');
-
-      document.getElementById('opt-owner-p1').textContent = state.profiles.p1.name;
-      document.getElementById('opt-owner-p2').textContent = state.profiles.p2.name;
+      document.getElementById('admin-sms-box').value = '';
 
       if (editId) {
         const tx = state.transactions.find(t => t.id === editId);
@@ -602,7 +811,6 @@
           setEntryType(tx.type);
           document.getElementById('entry-amount').value = tx.amount;
           document.getElementById('entry-category').value = tx.category;
-          document.getElementById('entry-owner').value = tx.owner || activePartner;
           document.getElementById('entry-date').value = tx.date;
           document.getElementById('entry-note').value = tx.note;
           return;
@@ -613,7 +821,6 @@
       document.getElementById('entry-id').value = '';
       setEntryType(defaultType);
       document.getElementById('entry-amount').value = '';
-      document.getElementById('entry-owner').value = activePartner;
       document.getElementById('entry-date').value = new Date().toISOString().slice(0, 10);
       document.getElementById('entry-note').value = '';
     }
@@ -627,19 +834,15 @@
       const id = document.getElementById('entry-id').value;
       const amount = parseFloat(document.getElementById('entry-amount').value);
       const category = document.getElementById('entry-category').value;
-      const owner = document.getElementById('entry-owner').value || activePartner;
       const date = document.getElementById('entry-date').value || new Date().toISOString().slice(0, 10);
       const note = document.getElementById('entry-note').value.trim() || category;
 
-      if (!amount || amount <= 0) {
-        alert('Please enter a valid amount.');
-        return;
-      }
+      if (!amount || amount <= 0) return alert('Please enter a valid amount.');
 
       if (id) {
         const idx = state.transactions.findIndex(t => t.id === id);
         if (idx > -1) {
-          state.transactions[idx] = { id, type: currentEntryType, amount, category, owner, date, note, updatedAt: Date.now() };
+          state.transactions[idx] = { ...state.transactions[idx], type: currentEntryType, amount, category, date, note, updatedAt: Date.now() };
         }
       } else {
         state.transactions.unshift({
@@ -647,7 +850,7 @@
           type: currentEntryType,
           amount,
           category,
-          owner,
+          owner: 'p1',
           date,
           note,
           updatedAt: Date.now()
@@ -659,7 +862,7 @@
     }
 
     function deleteEntry(id) {
-      if (!confirm('Delete this entry for both phones?')) return;
+      if (!confirm('Delete this entry?')) return;
       state.transactions = state.transactions.filter(t => t.id !== id);
       saveState(true);
     }
@@ -684,14 +887,16 @@
     }
 
     function addNewGoal() {
-      const name = prompt('Goal Name (e.g. Plot / Car / Tour):');
+      const name = prompt('Goal Name:');
       if (!name) return;
       const target = parseFloat(prompt('Target Amount (BDT):', '100000') || '100000');
       state.goals.push({ id: 'g_' + Date.now(), name, current: 0, target });
       saveState(true);
     }
 
-    // TWO-PHONE CLOUD SYNC ENGINE (Supports JSONBlob Instant Room IDs OR Custom Firebase URLs)
+    // =========================================================================
+    // CLOUD SYNC ENGINE
+    // =========================================================================
     function getSyncEndpoint(code) {
       const clean = code.trim();
       if (clean.startsWith('http://') || clean.startsWith('https://')) {
@@ -715,9 +920,9 @@
         localStorage.setItem(SYNC_CODE_KEY, syncCode);
         document.getElementById('sync-code-input').value = syncCode;
         updateSyncIndicator(true, 'Synced just now');
-        alert(`Family Sync Code Created: ${syncCode}\n\nCopy this code and paste it into the Sync tab on your wife's phone!`);
+        alert(`Family Sync Code Created: ${syncCode}\n\nPaste this code on Saima's phone to link her expenses!`);
       } catch (err) {
-        alert('Could not create automatic sync code. Please check your internet connection.');
+        alert('Could not create sync code. Check your internet connection.');
         updateSyncIndicator(false, 'Sync error');
       }
     }
@@ -733,18 +938,18 @@
         });
         updateSyncIndicator(true, 'Synced ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       } catch (e) {
-        updateSyncIndicator(false, 'Offline (saved locally)');
+        updateSyncIndicator(false, 'Saved locally');
       }
     }
 
     async function connectAndSyncCloud(manualTrigger = false) {
-      const inputVal = document.getElementById('sync-code-input')?.value.trim();
-      if (inputVal) {
-        syncCode = inputVal;
+      const adminInput = document.getElementById('sync-code-input')?.value.trim();
+      if (adminInput && deviceRole === 'admin') {
+        syncCode = adminInput;
         localStorage.setItem(SYNC_CODE_KEY, syncCode);
       }
       if (!syncCode) {
-        if (manualTrigger) alert('Please enter a Family Sync Code or tap "Create New Code" first.');
+        if (manualTrigger) alert('Enter a Family Sync Code first.');
         return;
       }
 
@@ -755,7 +960,6 @@
         const remote = await res.json();
 
         if (remote && Array.isArray(remote.transactions)) {
-          // Smart Merge: Combine unique transactions from both phones by ID
           const mergedMap = new Map();
           state.transactions.forEach(t => mergedMap.set(t.id, t));
           remote.transactions.forEach(t => {
@@ -767,7 +971,6 @@
 
           state.transactions = Array.from(mergedMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
-          // Adopt latest profiles, budgets & goals if remote is newer
           if ((remote.updatedAt || 0) > (state.updatedAt || 0)) {
             if (remote.profiles) state.profiles = remote.profiles;
             if (remote.budgets) state.budgets = remote.budgets;
@@ -777,60 +980,108 @@
           localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           renderAll();
           await pushStateToCloud();
-          if (manualTrigger) alert('Both phones are now linked and synced!');
+          if (manualTrigger) alert('Cloud Sync Linked & Updated!');
         }
       } catch (err) {
-        updateSyncIndicator(false, 'Sync failed');
-        if (manualTrigger) alert('Could not connect to that Sync Code. Double-check the code and internet connection.');
+        updateSyncIndicator(false, 'Sync error');
+        if (manualTrigger) alert('Could not connect to Sync Code.');
       }
     }
 
     function updateSyncIndicator(online, text) {
       const dot = document.getElementById('sync-dot');
       const badge = document.getElementById('sync-status-badge');
+      const pBadge = document.getElementById('p-sync-badge');
       const label = document.getElementById('last-synced-text');
       if (dot) dot.className = `w-3 h-3 rounded-full border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 ${online ? 'bg-emerald-400' : 'bg-amber-400'}`;
       if (badge) {
         badge.textContent = online ? 'Cloud Linked ✓' : 'Local Mode';
         badge.className = `text-[10px] font-bold px-2.5 py-0.5 rounded-full ${online ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}`;
       }
+      if (pBadge) {
+        pBadge.textContent = online ? 'Linked & Syncing ✓' : 'Offline';
+        pBadge.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${online ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}`;
+      }
       if (label && text) label.textContent = text;
     }
 
     function copySyncCode() {
       const val = document.getElementById('sync-code-input').value.trim();
-      if (!val) return alert('Generate a Sync Code first!');
+      if (!val) return alert('Create a Sync Code first!');
       navigator.clipboard?.writeText(val);
       alert('Copied Family Sync Code: ' + val);
     }
 
-    // MAIN UI RENDERER
+    // =========================================================================
+    // MASTER RENDERER
+    // =========================================================================
     function renderAll() {
       const p1 = state.profiles.p1;
       const p2 = state.profiles.p2;
-      const activeProf = state.profiles[activePartner] || p1;
 
-      // Top Header
+      const isPartnerMode = (deviceRole === 'partner');
+      const activeProf = isPartnerMode ? p2 : p1;
+
       document.getElementById('header-name').textContent = activeProf.name;
       document.getElementById('header-subtitle').textContent = activeProf.subtitle;
+      document.getElementById('header-subtitle').className = isPartnerMode
+        ? 'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-500/15 text-pink-300 border border-pink-500/30'
+        : 'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
       document.getElementById('header-avatar').innerHTML = renderAvatarContent(activeProf);
 
-      // Partner Switcher Bar
-      document.getElementById('pill-name-p1').textContent = p1.name.split(' ').slice(0, 2).join(' ');
-      document.getElementById('pill-avatar-p1').innerHTML = renderAvatarContent(p1);
-      document.getElementById('pill-name-p2').textContent = p2.name.split(' ').slice(0, 2).join(' ');
-      document.getElementById('pill-avatar-p2').innerHTML = renderAvatarContent(p2);
+      const headerActions = document.getElementById('header-actions');
+      if (isPartnerMode) {
+        headerActions.innerHTML = `
+          <button onclick="unlockAdminModePrompt()" class="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-bold">
+            🔑 Admin
+          </button>
+        `;
+      } else {
+        headerActions.innerHTML = `
+          <button onclick="openEntryModal()" class="px-3.5 py-2 rounded-xl bg-emerald-500 active:bg-emerald-600 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20">
+            + Add Entry
+          </button>
+        `;
+      }
 
-      document.getElementById('switch-p1').className = 'py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ' +
-        (activePartner === 'p1' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-slate-400');
-      document.getElementById('switch-p2').className = 'py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition ' +
-        (activePartner === 'p2' ? 'bg-pink-500/20 text-pink-300 border border-pink-500/40' : 'text-slate-400');
+      document.getElementById('view-partner-only').classList.toggle('hidden', !isPartnerMode);
+      document.getElementById('admin-bottom-nav').classList.toggle('hidden', isPartnerMode);
 
-      // Filter Owner Names
+      ['dashboard', 'ledger', 'budgets', 'sync'].forEach(t => {
+        const sec = document.getElementById('view-' + t);
+        if (isPartnerMode) {
+          sec.classList.add('hidden');
+        } else {
+          sec.classList.toggle('hidden', t !== currentAdminTab);
+          const nav = document.getElementById('nav-' + t);
+          if (nav) nav.className = 'py-1.5 rounded-xl flex flex-col items-center gap-0.5 ' + (t === currentAdminTab ? 'text-emerald-400 font-bold' : 'text-slate-400 font-medium');
+        }
+      });
+
+      if (isPartnerMode) {
+        const pSyncInput = document.getElementById('p-sync-code-input');
+        if (pSyncInput && syncCode && !pSyncInput.value) pSyncInput.value = syncCode;
+
+        const ownTx = state.transactions.filter(t => t.owner === 'p2' && t.type === 'expense');
+        document.getElementById('partner-own-list').innerHTML = ownTx.slice(0, 10).map(t => `
+          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-white">${t.note}</div>
+              <div class="text-[10px] text-slate-400">${t.category} • ${t.date}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-rose-400">${fmt(t.amount)}</span>
+              <button onclick="deleteEntry('${t.id}')" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+            </div>
+          </div>
+        `).join('') || `<p class="text-xs text-slate-500 text-center py-4">No expenditures logged yet.</p>`;
+        return;
+      }
+
+      document.getElementById('display-current-pin').textContent = adminPin;
       document.getElementById('filter-owner-p1').textContent = p1.name;
       document.getElementById('filter-owner-p2').textContent = p2.name;
 
-      // Sync Code Input
       const syncInput = document.getElementById('sync-code-input');
       if (syncInput && syncCode && !syncInput.value) syncInput.value = syncCode;
 
@@ -861,10 +1112,9 @@
       document.getElementById('kpi-expense').textContent = fmt(totalExpense);
       document.getElementById('kpi-savings').textContent = fmt(totalSavings);
 
-      document.getElementById('split-p1').textContent = `${p1.name.split(' ')[0]} Spent: ${fmt(p1Expense)}`;
-      document.getElementById('split-p2').textContent = `${p2.name.split(' ')[0]} Spent: ${fmt(p2Expense)}`;
+      document.getElementById('split-p1').textContent = `My Spend: ${fmt(p1Expense)}`;
+      document.getElementById('split-p2').textContent = `${p2.name.split(' ')[0]}'s Spend: ${fmt(p2Expense)}`;
 
-      // Render Category Progress Bars
       const budgetCats = Object.keys(state.budgets);
       let totalBudget = 0, totalMonthSpend = 0;
       document.getElementById('category-bars').innerHTML = budgetCats.map(cat => {
@@ -888,7 +1138,6 @@
       }).join('');
       document.getElementById('budget-summary-pill').textContent = `${fmt(totalMonthSpend)} of ${fmt(totalBudget)}`;
 
-      // Transaction Row Template (with Owner Photo & Badge)
       const renderTxRow = (t) => {
         const sign = t.type === 'income' ? '+' : '-';
         const color = t.type === 'income' ? 'text-emerald-400' : t.type === 'investment' ? 'text-sky-400' : 'text-rose-400';
@@ -916,9 +1165,8 @@
         `;
       };
 
-      document.getElementById('recent-list').innerHTML = state.transactions.slice(0, 6).map(renderTxRow).join('') || `<p class="text-xs text-slate-500 text-center py-4">No transactions yet.</p>`;
+      document.getElementById('recent-list').innerHTML = state.transactions.slice(0, 8).map(renderTxRow).join('') || `<p class="text-xs text-slate-500 text-center py-4">No transactions yet.</p>`;
 
-      // Full Ledger Filtering
       const q = (document.getElementById('search-input')?.value || '').toLowerCase();
       const fOwner = document.getElementById('filter-owner')?.value || 'all';
       const fType = document.getElementById('filter-type')?.value || 'all';
@@ -933,7 +1181,6 @@
       });
       document.getElementById('full-ledger-list').innerHTML = filtered.map(renderTxRow).join('') || `<p class="text-xs text-slate-500 text-center py-6">No matching entries found.</p>`;
 
-      // Budgets Editor
       document.getElementById('budget-editor-list').innerHTML = budgetCats.map(cat => `
         <div onclick="editBudgetLimit('${cat}')" class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between cursor-pointer">
           <span class="text-xs font-semibold text-slate-200">${cat}</span>
@@ -941,7 +1188,6 @@
         </div>
       `).join('');
 
-      // Savings Goals
       document.getElementById('goals-list').innerHTML = state.goals.map(g => {
         const pct = Math.min(100, Math.round((g.current / g.target) * 100));
         return `
@@ -1003,7 +1249,6 @@
       reader.readAsText(file);
     }
 
-    // Initialize & Auto-Sync Every 25 Seconds if Linked
     populateCategoryDropdowns();
     renderAll();
     if (syncCode) {
